@@ -12,6 +12,7 @@ from functools import partial
 
 from .device_navigation import SimpleDeviceNavigationComponent
 from .device import SimpleDeviceParameterComponent
+from .mixer import MixerComponent
 from .colors import LIVE_COLORS_TO_MIDI_VALUES, RGB_COLOR_TABLE
 
 SCRIPT_NAME = 'param8'
@@ -40,24 +41,30 @@ button_actions = {
     "DeviceDown": 24,
     "Prev Device": 33,
     "Next Device": 32,
-    "Prev Variation": 67,
-    "Next Variation": 68,
-    "Launch Variation": 69,
-    "Store Variation": 70,
-    "Recall Last Used": 72, 
-    "Randomize Macros": 71
+    "TrackDown": 54,
+    "TrackUp": 55,
+    "SendsDown": 56,
+    "SendsUp": 57,
   }
 led_actions = {
   }
 slider_actions = {    
-    "Encoder_1": 10,
-    "Encoder_2": 11,
-    "Encoder_3": 12,
-    "Encoder_4": 13,
-    "Encoder_5": 14,
-    "Encoder_6": 15,
-    "Encoder_7": 16,
-    "Encoder_8": 17,
+    "Device_Encoder_1": 10,
+    "Device_Encoder_2": 11,
+    "Device_Encoder_3": 12,
+    "Device_Encoder_4": 13,
+    "Device_Encoder_5": 14,
+    "Device_Encoder_6": 15,
+    "Device_Encoder_7": 16,
+    "Device_Encoder_8": 17,
+    "Tempo": 40,
+    "Groove": 41,
+    "Cue_Volume": 42,
+    "Master_Volume": 43,
+    "Track Volume": 44,
+    "Track Pan": 45,
+    "Track Send A": 46,
+    "Track Send B": 47,
   }
 display_actions =  {}
 
@@ -70,14 +77,24 @@ class param8(ControlSurface):
         self._request_count = 0
         self._last_sent_layout_byte = None
         self._skin = make_default_skin()
+        
+        # Initialiser device_bank_registry avant de créer les composants
+        self._device_bank_registry = self._create_device_bank_registry()
+        
         with self.component_guard():
             self._create_buttons()
             self._create_device_parameters()
             self.create_device_navigation()
+            self.create_mixer()
             # self.set_device_component(self._device)
         self.active_mode = 1
-        self._device_parameters.look_for_custome_device(self.active_mode)
+        self._device_parameters.look_for_param8_device(self.active_mode)
         print("param8 OK")
+
+    def _create_device_bank_registry(self):
+        """Crée le registre des banques de device"""
+        from ableton.v2.control_surface.device_bank_registry import DeviceBankRegistry
+        return DeviceBankRegistry()
 
     def create_device_navigation(self):
         self._device_navigation = SimpleDeviceNavigationComponent( name="Device_Navigation",
@@ -93,14 +110,15 @@ class param8(ControlSurface):
             self.buttons[control] = self.make_button(button_actions[control], MIDI_CHANNEL, msg_type=MIDI_CC_TYPE, name=control)
         for control in slider_actions:
             self.buttons[control] = self.make_slider(slider_actions[control], MIDI_CHANNEL, msg_type=MIDI_CC_TYPE, name=control)
-        self.device_parameter_buttons = ButtonMatrixElement(rows=[[self.buttons["Encoder_1"], self.buttons["Encoder_2"], self.buttons["Encoder_3"], self.buttons["Encoder_4"], self.buttons["Encoder_5"], self.buttons["Encoder_6"], self.buttons["Encoder_7"], self.buttons["Encoder_8"]]])
+            self.buttons[control].set_feedback_delay(1)
+        self.device_parameter_buttons = ButtonMatrixElement(rows=[[self.buttons["Device_Encoder_1"], self.buttons["Device_Encoder_2"], self.buttons["Device_Encoder_3"], self.buttons["Device_Encoder_4"], self.buttons["Device_Encoder_5"], self.buttons["Device_Encoder_6"], self.buttons["Device_Encoder_7"], self.buttons["Device_Encoder_8"]]])
         
     def make_button(self, identifier, channel, name, msg_type = MIDI_CC_TYPE, skin = None, is_modifier = False):
         return ButtonElement(True, msg_type, channel, identifier, skin=self._skin, name=name, resource_type=PrioritizedResource if is_modifier else None)
 
 
     def make_slider(self, identifier, channel, name, msg_type = MIDI_CC_TYPE, skin = None, is_modifier = False):
-        return EncoderElement(MIDI_CC_TYPE, channel, identifier, Live.MidiMap.MapMode.absolute)
+        return EncoderElement(MIDI_CC_TYPE, channel, identifier, Live.MidiMap.MapMode.relative_binary_offset)
 
     def _create_device_parameters(self):
         self._banking_info = BankingInfo(BANK_DEFINITIONS)
@@ -115,6 +133,27 @@ class param8(ControlSurface):
                                     prev_bank_button=self.buttons["BankDown"],
                     #   bank_select_buttons=self._elements.bank_select_buttons
                       )
+
+    def create_mixer(self):
+        """ Create the mixer component and assign the buttons to it"""
+        self._session_ring = SessionRingComponent(is_enabled=False, num_tracks=1, num_scenes=0, tracks_to_use=lambda : tuple(self.song.visible_tracks) + tuple(self.song.return_tracks) + (self.song.master_track,), name=u'Session_Ring')
+        self._mixer = MixerComponent(is_enabled=True, tracks_provider=self._session_ring, track_assigner=RightAlignTracksTrackAssigner(song=self.song, include_master_track=True), channel_strip_component_type=ChannelStripComponent, name=u'Mixer')
+        
+        # Configurer le layer après création
+        self._mixer.layer = Layer(
+            Master_Volume=self.buttons["Master_Volume"],
+            Cue_Volume=self.buttons["Cue_Volume"],
+            Track_Volume= self.buttons["Track Volume"],
+            Track_Pan= self.buttons["Track Pan"],
+            next_track_button=self.buttons["TrackUp"],
+            prev_track_button=self.buttons["TrackDown"],
+            next_sends_button=self.buttons["SendsUp"],
+            prev_sends_button=self.buttons["SendsDown"],
+            tempo=self.buttons["Tempo"],
+            groove=self.buttons["Groove"],
+        )
+
+        self._mixer.set_parent(self)
 
     def send_sysex(self, midi_bytes):
         self._send_midi(midi_bytes)
@@ -132,11 +171,12 @@ class param8(ControlSurface):
         print(message)
         self.send_sysex(tuple(message))
 
-    def send_display(self, status_byte, param_number, name):
-        _len = len(name)
-        message = [240, 111, status_byte, param_number]
+    def send_display(self, status_byte, param_number, name, static_overlay=0):
+        _name = name[:13].strip()  # Limiter à 14 caractères et enlever les espaces
+        _len = len(_name)
+        message = [240, 111, status_byte, param_number, static_overlay]
         for i in range(_len):
-            char_code = ord(name[i])
+            char_code = ord(_name[i])
             if 0 <= char_code - 32 <= 94:  # Caractères standards (32 à 126)
                 message.append(0)  # Byte spécial pour indiquer un caractère étendu
                 message.append(char_code - 32)
@@ -145,8 +185,11 @@ class param8(ControlSurface):
                 message.append(char_code - 128)  # Ajout du caractère étendu
             else:  # Autres caractères non valides
                 message.append(95)  # Remplace par `_`
+        # Ajouter un byte de fin pour indiquer la fin du message
+        if len(name) > 12: 
+            message.append(0)
+            message.append(14)
         message.append(247)
-        print(message)
         self.send_sysex(tuple(message))
 
         # sequence_to_run = [
@@ -173,16 +216,21 @@ class param8(ControlSurface):
 
     def handle_sysex(self, midi_bytes):
         if midi_bytes[1] == (111):
-            if midi_bytes[2] == 2 and midi_bytes[3] == 3:
-                self._device_parameters.update()
             if midi_bytes[2] == 4:
                 self.active_mode = midi_bytes[3]
+                self._mixer.mixer_control_enabled = False
+                self._device_parameters.device_control_enabled = False
                 if self.active_mode == 7:
-                    self._device_parameters.is_enabled = True
+                    self._device_parameters.device_control_enabled = True
                     self._device_parameters.update()
+                elif self.active_mode == 6:
+                    self._mixer.mixer_control_enabled = True
+                    self._mixer.update_component()
                 else:
-                    self._device_parameters.is_enabled = False
-                    self._device_parameters.look_for_custome_device(self.active_mode)
+                    self._device_parameters.device_control_enabled = False
+                    self._device_parameters.look_for_param8_device(self.active_mode)
+                    self.request_rebuild_midi_map()
+                    self._device_parameters.update()
 
 
     def process_midi_bytes(self, midi_bytes, midi_processor):
@@ -197,7 +245,7 @@ class param8(ControlSurface):
     def _add_slider(self, number):
         return EncoderElement(MIDI_CC_TYPE, MIDI_CHANNEL, number, Live.MidiMap.MapMode.absolute)
 
-    def disconnect(self):
-        super(param8, self).disconnect()
-        # self._send_midi(prefix + (3, 247))
-        # self._session = None
+    # def disconnect(self):
+    #     super(param8, self).disconnect()
+    #     # self._send_midi(prefix + (3, 247))
+    #     # self._session = None

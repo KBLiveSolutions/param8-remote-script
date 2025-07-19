@@ -35,10 +35,12 @@ class SimpleDeviceParameterComponent(Component):
 
     @next_bank_button.pressed
     def bank_up_button_pressed(self, button):
+        print("BANK UP")
         self.select_bank(1)
 
     @prev_bank_button.pressed
     def bank_down_button_pressed(self, button):
+        print("BANK DOWN")
         self.select_bank(-1)
 
     @bank_select_buttons.pressed
@@ -57,6 +59,7 @@ class SimpleDeviceParameterComponent(Component):
     @depends(device_provider=None)
     def __init__(self, parent = None, device_provider=None, banking_info=None, device_bank_registry=None, toggle_lock=None, use_parameter_banks=False, *a, **k):
         (super(SimpleDeviceParameterComponent, self).__init__)(*a, **k)
+        self.device_control_enabled = False
         self.sysex_smoother = 0
         self._parent = parent
         self.control_offset = 0
@@ -97,14 +100,16 @@ class SimpleDeviceParameterComponent(Component):
         self.sysex_smoother += 1
         if self.sysex_smoother > 2:
             self.sysex_smoother = 0
-        self._parent.send_display(PARAM_VALUE, index, str(self.parameters[index]))
+        if self.device_control_enabled:
+            self._parent.send_display(PARAM_VALUE, index, str(self.parameters[index]))
 
 
     @listens_group("name")
     def _on_parameter_changed(self, parameter):
         index = self.parameters.index(parameter)
-        self._parent.send_display(PARAM_NAME, index, parameter.name)
-        print("PARAMETER CHANGED", index, parameter.name)
+        if self.device_control_enabled:
+            self._parent.send_display(PARAM_NAME, index, parameter.name)
+            print("PARAMETER CHANGED", index, parameter.name)
 
     @device_lock_button.toggled
     def device_lock_button(self, *_):
@@ -122,10 +127,15 @@ class SimpleDeviceParameterComponent(Component):
 
     @bank_index.setter
     def bank_index(self, value):
+        print("SETTING BANK INDEX", value, self._bank_index)
         self._bank_index = self._clamp_to_bank_size(value)
         if self._device_bank_registry:
             self._device_bank_registry.set_device_bank(self._device, self._bank_index)
+            num_banks = len(self._banking_info.device_bank_names(self._device))
         self.control_offset = self.bank_index
+        self.next_bank_button.color = 127 if self._bank_index < num_banks - 1 else 0
+        self.prev_bank_button.color = 127 if self._bank_index > 0 else 0
+
         self.update()
 
     def _clamp_to_bank_size(self, value):
@@ -154,12 +164,13 @@ class SimpleDeviceParameterComponent(Component):
         self._device = self._device_provider.device
         self._SimpleDeviceParameterComponent__on_bank_changed.subject = self._device_bank_registry
         self.bank_index = 0
-        # if self._device_bank_registry:
-        #     self._bank_index = self._device_bank_registry.get_device_bank(self._device)
-            
-        # else:
-        #     self.bank_index = 0
         self.update()
+        # devices = self.song.view.selected_track.devices
+        
+        # devices_amount = len(list(devices))
+        # device_index = list(devices).index(self._device)
+        # self.next_device_button.color = 127 if device_index < devices_amount - 1 else 0
+        # self.prev_device_button.color = 127 if device_index > 0 else 0
 
     @listens("device_bank")
     def __on_bank_changed(self, device, bank):
@@ -172,6 +183,7 @@ class SimpleDeviceParameterComponent(Component):
 
     def update(self):
         super(SimpleDeviceParameterComponent, self).update()
+        print("UPDATE DEVICE PARAMETERS", self._is_enabled)
         if not self._is_enabled:
             self._disconnect_parameters()
             return
@@ -190,24 +202,34 @@ class SimpleDeviceParameterComponent(Component):
 
     def _connect_parameters(self):
         if self._parameter_controls is not None:
-            controls = list(self._parameter_controls)
-            self.parameters = [self.selected_bank[i] for i in range(8)]
-            self._on_control_value_changed.replace_subjects(self._parameter_controls)
-            self._on_parameter_changed.replace_subjects(self.parameters)
-            for i, control in enumerate(controls):
-                parameter = self.parameters[i]
-                if liveobj_valid(parameter):
-                    name = parameter.name
-                    print("PARAM_NAME", i, name)
-                    control.connect_to(parameter)
-                    self._parent.send_display(PARAM_NAME, i, name)
-                else:
-                    control.release_parameter()
-                    self._parent.send_display(PARAM_NAME, i, "******")
-                    self._empty_control_slots.register_slot(control, nop, "value")
+            if not self.device_control_enabled:
+                self.release_parameter_controls()
+            else:
+                controls = list(self._parameter_controls)
+                self.parameters = [self.selected_bank[i] for i in range(8)]
+                self._on_control_value_changed.replace_subjects(self._parameter_controls)
+                self._on_parameter_changed.replace_subjects(self.parameters)
+                for i, control in enumerate(controls):
+                    parameter = self.parameters[i]
+                    if liveobj_valid(parameter):
+                        name = parameter.name
+                        control.connect_to(parameter)
+                        if self.device_control_enabled:
+                            self._parent.send_display(PARAM_NAME, i, name)
+                    else:
+                        control.release_parameter()
+                        if self.device_control_enabled:
+                            self._parent.send_display(PARAM_NAME, i, "******")
+                        self._empty_control_slots.register_slot(control, nop, "value")
+
+    def release_parameter_controls(self):
+        controls = list(self._parameter_controls)
+        for i, control in enumerate(controls):
+            self._empty_control_slots.register_slot(control, nop, "value")
 
     def _update_parameter_banks(self):
         device = self._device
+        print("UPDATE PARAMETER BANKS", device, self._use_parameter_banks)
         if liveobj_valid(device):
             if self._use_parameter_banks:
                 self._banks = parameter_banks(device)
@@ -215,18 +237,22 @@ class SimpleDeviceParameterComponent(Component):
                 self._banks = [
                  best_of_parameter_bank(device)]
             device_bank_names = self._banking_info.device_bank_names(device)
-            if device_bank_names:
+            if device_bank_names and self.device_control_enabled:
                 print(self._device_bank_registry.get_device_bank(device), device_bank_names)
                 bank_name = device_bank_names[self._device_bank_registry.get_device_bank(device)]
-                self._parent.send_display(DEVICE_NAME, 0, self._device.class_display_name)
-                self._parent.send_display(BANK_NAME, 1, bank_name)
+                if self.device_control_enabled:
+                        self._parent.send_display(DEVICE_NAME, 0, self._device.class_display_name)
+                        self._parent.send_display(BANK_NAME, 1, bank_name)
         else:
             self._banks = []
+            if self.device_control_enabled:
+                self._parent.send_display(DEVICE_NAME, 0, "No Device Selected", static_overlay = 1)
+                self._parent.send_display(BANK_NAME, 1, "No Device Selected", static_overlay = 1)
 
     def _update_device_lock_button(self):
         self.device_lock_button.is_toggled = self._device_provider.is_locked_to_device
 
-    def look_for_custome_device(self, active_mode):
+    def look_for_param8_device(self, active_mode):
         for t in self.song.visible_tracks:
             for d in t.devices:
                 if d.name.startswith("param8"):
@@ -234,13 +260,12 @@ class SimpleDeviceParameterComponent(Component):
                     device = d
                     print("Found param8 device", d.name, items, len(d.chains), (int(items[1])-1) == active_mode)
                     if len(items) > 1 and (int(items[1])-1) == active_mode:
-
-                        if len(d.chains) > 0:
-                            chain_selector = int(d.parameters[17].value)
-                            device = d.chains[chain_selector].devices[0]
-                    for i in range(16):
-                        p = device.parameters[i+1]
-                        if not p.name.startswith("Macro"):
-                            print(p.name, p.name.startswith("Macro"))
-                            self._parent.send_display(PARAM_NAME, i, p.name)
+                        # if len(d.chains) > 0:
+                        #     chain_selector = int(d.parameters[17].value)
+                        #     device = d.chains[chain_selector].devices[0]
+                        for i in range(16):
+                            p = device.parameters[i+1]
+                            if not p.name.startswith("Macro"):
+                                print(p.name, p.name.startswith("Macro"))
+                                self._parent.send_display(PARAM_NAME, i, p.name)
                     return
