@@ -9,7 +9,7 @@ from . import colors
 class Colors(object):
 
     class DefaultButton(object):
-        On = Color(colors.white)
+        On = Color(colors.off)
         Off = Color(colors.off)
         Disabled = Color(0)
 

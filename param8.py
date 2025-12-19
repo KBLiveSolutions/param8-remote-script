@@ -3,7 +3,7 @@ from ableton.v2.base import const, inject, recursive_map, nop, liveobj_valid, cl
 from ableton.v2.control_surface import ControlSurface, Layer, BankingInfo, DeviceDecoratorFactory, PrioritizedResource, MIDI_CC_TYPE, MIDI_NOTE_TYPE, PercussionInstrumentFinder
 from ableton.v2.control_surface import MIDI_CC_TYPE, MIDI_NOTE_TYPE, PrioritizedResource
 from ableton.v2.control_surface.default_bank_definitions import BANK_DEFINITIONS
-from ableton.v2.control_surface.elements import ButtonElement, EncoderElement, ButtonMatrixElement, ComboElement, EncoderElement, SliderElement, TouchEncoderElement
+from ableton.v2.control_surface.elements import ButtonElement, EncoderElement, ButtonMatrixElement, ComboElement, EncoderElement, FineGrainWithModifierEncoderElement
 from ableton.v2.control_surface.components import AutoArmComponent, BackgroundComponent, RightAlignTracksTrackAssigner, SessionRingComponent, UndoRedoComponent, ChannelStripComponent, SessionNavigationComponent
 from ableton.v2.control_surface.mode import AddLayerMode, DelayMode, ImmediateBehaviour, ModesComponent, ReenterBehaviour
 from .skin import make_default_skin
@@ -35,16 +35,27 @@ def print(text):
 
 
 button_actions = {
+    "Shift": 20,
     "BankUp": 27,
     "BankDown": 26,
     "DeviceUp": 25,
     "DeviceDown": 24,
     "Prev Device": 33,
     "Next Device": 32,
-    "TrackDown": 54,
-    "TrackUp": 55,
+    "TrackDown": 20,
+    "TrackUp": 21,
     "SendsDown": 56,
     "SendsUp": 57,
+    "Metronome": 50,
+    "Mute": 54,
+    "Solo": 55,
+    "Capture": 53,
+    "Record": 51,
+    "Play": 52,
+    "Loop": 56,
+    "Default": 57,
+    "A/B": 23,
+    "Hotswap": 22,
   }
 led_actions = {
   }
@@ -63,8 +74,8 @@ slider_actions = {
     "Master_Volume": 43,
     "Track Volume": 44,
     "Track Pan": 45,
-    "Track Send A": 46,
-    "Track Send B": 47,
+    "Song Position": 46,
+    "Selected Parameter": 47,
   }
 display_actions =  {}
 
@@ -89,6 +100,7 @@ class param8(ControlSurface):
             # self.set_device_component(self._device)
         self.active_mode = 1
         self._device_parameters.look_for_param8_device(self.active_mode)
+        self.send_sysex((240, 111, 5, 0, 247))  # Envoyer l'acquittement au contrôleur
         print("param8 OK")
 
     def _create_device_bank_registry(self):
@@ -106,19 +118,27 @@ class param8(ControlSurface):
     def _create_buttons(self):
         """ Create all the buttons one by one then buils the button matrixes if needed"""
         self.buttons = {}
+        self.encoders = {}
         for control in button_actions:
             self.buttons[control] = self.make_button(button_actions[control], MIDI_CHANNEL, msg_type=MIDI_CC_TYPE, name=control)
         for control in slider_actions:
-            self.buttons[control] = self.make_slider(slider_actions[control], MIDI_CHANNEL, msg_type=MIDI_CC_TYPE, name=control)
-            self.buttons[control].set_feedback_delay(1)
-        self.device_parameter_buttons = ButtonMatrixElement(rows=[[self.buttons["Device_Encoder_1"], self.buttons["Device_Encoder_2"], self.buttons["Device_Encoder_3"], self.buttons["Device_Encoder_4"], self.buttons["Device_Encoder_5"], self.buttons["Device_Encoder_6"], self.buttons["Device_Encoder_7"], self.buttons["Device_Encoder_8"]]])
-        
+            self.encoders[control] = self.make_encoder(slider_actions[control], MIDI_CHANNEL, msg_type=MIDI_CC_TYPE, name=control)
+            self.encoders[control].set_feedback_delay(1)
+        self.parameter_controls_raw = [self.encoders["Device_Encoder_1"], self.encoders["Device_Encoder_2"], self.encoders["Device_Encoder_3"], self.encoders["Device_Encoder_4"], self.encoders["Device_Encoder_5"], self.encoders["Device_Encoder_6"], self.encoders["Device_Encoder_7"], self.encoders["Device_Encoder_8"]]
+        self.device_parameter_buttons = ButtonMatrixElement(rows=[self.parameter_controls_raw])
+        self.global_param_controls = ButtonMatrixElement(name="Track_Controls", rows=[self.parameter_controls_raw])
+        # fine_grained_continuous_mapping_sensitivity = 0.1
+        # continuous_mapping_sensitivity = 0.5
+        # self.fine_grain_param_controls_raw = [FineGrainWithModifierEncoderElement(encoder, self.buttons["Shift"], fine_grained_continuous_mapping_sensitivity, continuous_mapping_sensitivity) for encoder in self.parameter_controls_raw]
+        # self.fine_grain_param_controls = ButtonMatrixElement(rows=[self.fine_grain_param_controls_raw])
+
     def make_button(self, identifier, channel, name, msg_type = MIDI_CC_TYPE, skin = None, is_modifier = False):
         return ButtonElement(True, msg_type, channel, identifier, skin=self._skin, name=name, resource_type=PrioritizedResource if is_modifier else None)
 
-
-    def make_slider(self, identifier, channel, name, msg_type = MIDI_CC_TYPE, skin = None, is_modifier = False):
-        return EncoderElement(MIDI_CC_TYPE, channel, identifier, Live.MidiMap.MapMode.relative_binary_offset)
+    def make_encoder(self, identifier, channel, name, msg_type = MIDI_CC_TYPE, skin = None, is_modifier = False):
+        encoder = EncoderElement(MIDI_CC_TYPE, channel, identifier, Live.MidiMap.MapMode.relative_smooth_two_compliment)
+        encoder.mapping_sensitivity = 2.0  # Augmente cette valeur pour rendre l'encodeur plus "rapide"
+        return encoder
 
     def _create_device_parameters(self):
         self._banking_info = BankingInfo(BANK_DEFINITIONS)
@@ -131,6 +151,8 @@ class param8(ControlSurface):
         self._device_parameters.layer=Layer(parameter_controls=self.device_parameter_buttons,
                                     next_bank_button=self.buttons["BankUp"],
                                     prev_bank_button=self.buttons["BankDown"],
+                                    Compare=self.buttons["A/B"],
+                                    Hotswap=self.buttons["Hotswap"],
                     #   bank_select_buttons=self._elements.bank_select_buttons
                       )
 
@@ -141,19 +163,29 @@ class param8(ControlSurface):
         
         # Configurer le layer après création
         self._mixer.layer = Layer(
-            Master_Volume=self.buttons["Master_Volume"],
-            Cue_Volume=self.buttons["Cue_Volume"],
-            Track_Volume= self.buttons["Track Volume"],
-            Track_Pan= self.buttons["Track Pan"],
+            Master_Volume=self.encoders["Master_Volume"],
+            Cue_Volume=self.encoders["Cue_Volume"],
+            Track_Volume= self.encoders["Track Volume"],
+            Track_Pan= self.encoders["Track Pan"],
+            Selected_Parameter=self.encoders["Selected Parameter"],
+            Song_Position=self.encoders["Song Position"],
             next_track_button=self.buttons["TrackUp"],
             prev_track_button=self.buttons["TrackDown"],
             next_sends_button=self.buttons["SendsUp"],
             prev_sends_button=self.buttons["SendsDown"],
-            tempo=self.buttons["Tempo"],
-            groove=self.buttons["Groove"],
+            tempo=self.encoders["Tempo"],
+            groove=self.encoders["Groove"],
+            Mute=self.buttons["Mute"],
+            Solo=self.buttons["Solo"],
+            Record=self.buttons["Record"],
+            Play=self.buttons["Play"],
+            Loop=self.buttons["Loop"],
+            Capture=self.buttons["Capture"],
+            Default=self.buttons["Default"],
+            Metronome=self.buttons["Metronome"],
         )
-
         self._mixer.set_parent(self)
+
 
     def send_sysex(self, midi_bytes):
         self._send_midi(midi_bytes)
@@ -227,7 +259,6 @@ class param8(ControlSurface):
                     self._mixer.mixer_control_enabled = True
                     self._mixer.update_component()
                 else:
-                    self._device_parameters.device_control_enabled = False
                     self._device_parameters.look_for_param8_device(self.active_mode)
                     self.request_rebuild_midi_map()
                     self._device_parameters.update()
@@ -243,7 +274,7 @@ class param8(ControlSurface):
         return ButtonElement(True, MIDI_CC_TYPE, MIDI_CHANNEL, number)
 
     def _add_slider(self, number):
-        return EncoderElement(MIDI_CC_TYPE, MIDI_CHANNEL, number, Live.MidiMap.MapMode.absolute)
+        return EncoderElement(MIDI_CC_TYPE, MIDI_CHANNEL, number, Live.MidiMap.MapMode.relative_smooth_two_compliment)
 
     # def disconnect(self):
     #     super(param8, self).disconnect()

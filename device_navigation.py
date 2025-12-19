@@ -10,6 +10,8 @@ from ableton.v2.control_surface import Component
 from ableton.v2.control_surface.control import ButtonControl
 NavDirection = Live.Application.Application.View.NavDirection
 
+PARAM_NAME = 0
+
 class SimpleDeviceNavigationComponent(Component):
     next_button = ButtonControl()
     prev_button = ButtonControl()

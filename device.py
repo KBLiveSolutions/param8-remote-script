@@ -32,6 +32,8 @@ class SimpleDeviceParameterComponent(Component):
     prev_device_button = ButtonControl()
     next_bank_button = ButtonControl()
     prev_bank_button = ButtonControl()
+    Compare = ToggleButtonControl()
+    Hotswap = ToggleButtonControl()
 
     @next_bank_button.pressed
     def bank_up_button_pressed(self, button):
@@ -48,10 +50,22 @@ class SimpleDeviceParameterComponent(Component):
         print("BANK", button.index)
         self.select_bank(int(button.index / 2))
 
+    @Compare.toggled
+    def compare_toggled(self, is_toggled, button):
+        print("TOGGLING COMPARE", self._device.can_compare_ab)
+        if self._device.can_compare_ab:
+            self._device.save_preset_to_compare_ab_slot()
+        print(f"Compare Mode: {is_toggled}")
+    
+    @Hotswap.toggled
+    def hotswap_toggled(self, is_toggled, button):
+        self.song.view.browse_mode = is_toggled
+        print(f"Hotswap Mode: {is_toggled}")
+
     def select_bank(self, factor):
         prev_bank = self.bank_index
         self.bank_index += factor
-        # self._bank_index = self._clamp_to_bank_size(self._bank_index)
+        self.bank_index = self._clamp_to_bank_size(self._bank_index)
         # if prev_bank != self.bank_index:
         #     self.control_offset = self.bank_index
         #     self.update()
@@ -127,14 +141,16 @@ class SimpleDeviceParameterComponent(Component):
 
     @bank_index.setter
     def bank_index(self, value):
-        print("SETTING BANK INDEX", value, self._bank_index)
         self._bank_index = self._clamp_to_bank_size(value)
         if self._device_bank_registry:
             self._device_bank_registry.set_device_bank(self._device, self._bank_index)
             num_banks = len(self._banking_info.device_bank_names(self._device))
         self.control_offset = self.bank_index
-        self.next_bank_button.color = 127 if self._bank_index < num_banks - 1 else 0
-        self.prev_bank_button.color = 127 if self._bank_index > 0 else 0
+
+        self._parent.send_display(PARAM_NAME, 6+8, self._banking_info.device_bank_names(self._device)[self._bank_index-1] if  self._bank_index > 0 else "---")
+        self._parent.send_display(PARAM_NAME, 7+8, self._banking_info.device_bank_names(self._device)[self._bank_index+1] if self._bank_index < num_banks - 1 else "---")
+        # self.next_bank_button.color = 127 if self._bank_index < num_banks - 1 else 0
+        # self.prev_bank_button.color = 127 if self._bank_index > 0 else 0
 
         self.update()
 
@@ -165,12 +181,34 @@ class SimpleDeviceParameterComponent(Component):
         self._SimpleDeviceParameterComponent__on_bank_changed.subject = self._device_bank_registry
         self.bank_index = 0
         self.update()
+        # self.on_selected_parameter_changed.subject = self._device
         # devices = self.song.view.selected_track.devices
         
         # devices_amount = len(list(devices))
         # device_index = list(devices).index(self._device)
         # self.next_device_button.color = 127 if device_index < devices_amount - 1 else 0
         # self.prev_device_button.color = 127 if device_index > 0 else 0
+
+    # @listens("selected_parameter")
+    # def on_selected_parameter_changed(self):
+    #     parameter = self._device_provider.selected_parameter
+    #     self.on_value_changed.subject = parameter
+    #     if liveobj_valid(parameter):
+    #         print("SELECTED PARAMETER CHANGED", parameter.name)
+    #         if self.device_control_enabled:
+    #             self._parent.send_display(PARAM_NAME, 0, parameter.name)
+    #     else:
+    #         if self.device_control_enabled:
+    #             self._parent.send_display(PARAM_NAME, 0, "No Parameter", static_overlay=1)
+
+    # @listens("value")
+    # def on_value_changed(self):
+    #     parameter = self._device_provider.selected_parameter
+    #     value = parameter.value if liveobj_valid(parameter) else None
+    #     print("SELECTED PARAMETER VALUE CHANGED", value)
+    #     if liveobj_valid(parameter):
+    #         if self.device_control_enabled:
+    #             self._parent.send_display(PARAM_VALUE, 0, str(parameter))
 
     @listens("device_bank")
     def __on_bank_changed(self, device, bank):
@@ -183,7 +221,6 @@ class SimpleDeviceParameterComponent(Component):
 
     def update(self):
         super(SimpleDeviceParameterComponent, self).update()
-        print("UPDATE DEVICE PARAMETERS", self._is_enabled)
         if not self._is_enabled:
             self._disconnect_parameters()
             return
@@ -229,7 +266,6 @@ class SimpleDeviceParameterComponent(Component):
 
     def _update_parameter_banks(self):
         device = self._device
-        print("UPDATE PARAMETER BANKS", device, self._use_parameter_banks)
         if liveobj_valid(device):
             if self._use_parameter_banks:
                 self._banks = parameter_banks(device)

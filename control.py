@@ -12,9 +12,10 @@ from ableton.v2.control_surface.control import InputControl, MappedControl, Mapp
 class SendReceiveValueControl(InputControl):
 
     class State(SendValueMixin, InputControl.State):
-        pass
-
-
+        def send_value(self, value):
+            if self._control_element:
+                self._control_element.send_value(value)
+    
 class MappedAbsoluteControl(MappedControl):
 
     class State(MappedControl.State):
