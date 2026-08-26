@@ -1,9 +1,12 @@
 import Live
+import json, os
 from ableton.v2.base import const, inject, recursive_map, nop, liveobj_valid, clamp, listenable_property, listens, task, index_if, depends
 from ableton.v2.control_surface import ControlSurface, Layer, BankingInfo, DeviceDecoratorFactory, PrioritizedResource, MIDI_CC_TYPE, MIDI_NOTE_TYPE, PercussionInstrumentFinder
 from ableton.v2.control_surface import MIDI_CC_TYPE, MIDI_NOTE_TYPE, PrioritizedResource
 from ableton.v2.control_surface.default_bank_definitions import BANK_DEFINITIONS
-from ableton.v2.control_surface.elements import ButtonElement, EncoderElement, ButtonMatrixElement, ComboElement, EncoderElement, FineGrainWithModifierEncoderElement
+
+_DEFAULTS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "defaults.json")
+from ableton.v2.control_surface.elements import ButtonElement, EncoderElement, ButtonMatrixElement, ComboElement, EncoderElement
 from ableton.v2.control_surface.components import AutoArmComponent, BackgroundComponent, RightAlignTracksTrackAssigner, SessionRingComponent, UndoRedoComponent, ChannelStripComponent, SessionNavigationComponent
 from ableton.v2.control_surface.mode import AddLayerMode, DelayMode, ImmediateBehaviour, ModesComponent, ReenterBehaviour
 from .skin import make_default_skin
@@ -100,8 +103,77 @@ class param8(ControlSurface):
             # self.set_device_component(self._device)
         self.active_mode = 1
         self._device_parameters.look_for_param8_device(self.active_mode)
-        self.send_sysex((240, 111, 5, 0, 247))  # Envoyer l'acquittement au contrôleur
+        self.send_sysex((240, 111, 5, 0, 247))
+        self.schedule_message(20, self._delayed_handshake)
         print("param8 OK")
+
+    def _delayed_handshake(self):
+        self.send_sysex((240, 111, 5, 0, 247))
+
+    def _scan_set_devices(self):
+        """Scan toutes les devices du Live Set actuel. Celles qui ne sont pas
+        déjà dans defaults.json sont ajoutées avec leurs banks par défaut.
+        Usage: décommenter l'appel dans __init__, recharger le script, recommenter."""
+        try:
+            from _Generic.Devices import parameter_banks
+
+            if os.path.exists(_DEFAULTS_PATH):
+                with open(_DEFAULTS_PATH, "r") as f:
+                    result = json.load(f)
+            else:
+                result = {}
+
+            browser = self.application.browser
+            browser_cat = {}
+            for cat_key, cat_item in [("audio_effects", browser.audio_effects),
+                                       ("instruments", browser.instruments),
+                                       ("midi_effects", browser.midi_effects)]:
+                for item in cat_item.children:
+                    if item.is_folder:
+                        for child in item.children:
+                            if not child.is_folder:
+                                browser_cat[child.name] = cat_key
+                    else:
+                        browser_cat[item.name] = cat_key
+
+            added = 0
+            all_tracks = list(self.song.visible_tracks) + list(self.song.return_tracks) + [self.song.master_track]
+            for track in all_tracks:
+                for device in track.devices:
+                    cn = device.class_name
+                    if cn in result:
+                        continue
+                    dn = device.class_display_name
+                    cat = browser_cat.get(dn, "audio_effects")
+                    try:
+                        pbanks = parameter_banks(device)
+                    except Exception:
+                        pbanks = []
+                    bank_names = self._banking_info.device_bank_names(device)
+                    banks = []
+                    for i, bank in enumerate(pbanks):
+                        bname = bank_names[i] if i < len(bank_names) else "Bank %d" % (i + 1)
+                        params = []
+                        for p in bank:
+                            if liveobj_valid(p):
+                                params.append(p.name)
+                            else:
+                                params.append(None)
+                        banks.append({"name": bname, "parameters": params})
+                    entry = {"display_name": dn, "category": cat}
+                    if banks:
+                        entry["banks"] = banks
+                    result[cn] = entry
+                    added += 1
+                    print("param8: + %s (%s, %d banks)" % (dn, cn, len(banks)))
+
+            with open(_DEFAULTS_PATH, "w") as f:
+                json.dump(result, f, indent=2, sort_keys=True)
+            print("param8: scan done — added %d new devices (total: %d)" % (added, len(result)))
+        except Exception as e:
+            import traceback
+            print("param8: scan failed: %s" % e)
+            traceback.print_exc()
 
     def _create_device_bank_registry(self):
         """Crée le registre des banques de device"""
@@ -127,10 +199,7 @@ class param8(ControlSurface):
         self.parameter_controls_raw = [self.encoders["Device_Encoder_1"], self.encoders["Device_Encoder_2"], self.encoders["Device_Encoder_3"], self.encoders["Device_Encoder_4"], self.encoders["Device_Encoder_5"], self.encoders["Device_Encoder_6"], self.encoders["Device_Encoder_7"], self.encoders["Device_Encoder_8"]]
         self.device_parameter_buttons = ButtonMatrixElement(rows=[self.parameter_controls_raw])
         self.global_param_controls = ButtonMatrixElement(name="Track_Controls", rows=[self.parameter_controls_raw])
-        # fine_grained_continuous_mapping_sensitivity = 0.1
-        # continuous_mapping_sensitivity = 0.5
-        # self.fine_grain_param_controls_raw = [FineGrainWithModifierEncoderElement(encoder, self.buttons["Shift"], fine_grained_continuous_mapping_sensitivity, continuous_mapping_sensitivity) for encoder in self.parameter_controls_raw]
-        # self.fine_grain_param_controls = ButtonMatrixElement(rows=[self.fine_grain_param_controls_raw])
+        self._shift_active = False
 
     def make_button(self, identifier, channel, name, msg_type = MIDI_CC_TYPE, skin = None, is_modifier = False):
         return ButtonElement(True, msg_type, channel, identifier, skin=self._skin, name=name, resource_type=PrioritizedResource if is_modifier else None)
@@ -204,7 +273,7 @@ class param8(ControlSurface):
         self.send_sysex(tuple(message))
 
     def send_display(self, status_byte, param_number, name, static_overlay=0):
-        _name = name[:13].strip()  # Limiter à 14 caractères et enlever les espaces
+        _name = name[:32].strip()  # Limiter à 14 caractères et enlever les espaces
         _len = len(_name)
         message = [240, 111, status_byte, param_number, static_overlay]
         for i in range(_len):
@@ -217,10 +286,6 @@ class param8(ControlSurface):
                 message.append(char_code - 128)  # Ajout du caractère étendu
             else:  # Autres caractères non valides
                 message.append(95)  # Remplace par `_`
-        # Ajouter un byte de fin pour indiquer la fin du message
-        if len(name) > 12: 
-            message.append(0)
-            message.append(14)
         message.append(247)
         self.send_sysex(tuple(message))
 
@@ -254,10 +319,12 @@ class param8(ControlSurface):
                 self._device_parameters.device_control_enabled = False
                 if self.active_mode == 7:
                     self._device_parameters.device_control_enabled = True
+                    self._device_parameters._update_parameter_banks()
                     self._device_parameters.update()
                 elif self.active_mode == 6:
                     self._mixer.mixer_control_enabled = True
                     self._mixer.update_component()
+                    self.schedule_message(5, self._mixer._send_all_value_displays)
                 else:
                     self._device_parameters.look_for_param8_device(self.active_mode)
                     self.request_rebuild_midi_map()
@@ -267,7 +334,17 @@ class param8(ControlSurface):
     def process_midi_bytes(self, midi_bytes, midi_processor):
         if midi_bytes[0] == 240 and midi_bytes[-1] == 247:
             self.handle_sysex(midi_bytes)
-        """Intercepts incoming MIDI bytes, including Program Change."""
+        # Shift CC 110 on channel 8 (0-indexed 7): toggle fine-grain sensitivity
+        if len(midi_bytes) >= 3:
+            status = midi_bytes[0] & 0xF0
+            channel = midi_bytes[0] & 0x0F
+            if status == 0xB0 and channel == MIDI_CHANNEL and midi_bytes[1] == 110:
+                is_shift = midi_bytes[2] > 63
+                if is_shift != self._shift_active:
+                    self._shift_active = is_shift
+                    sens = 0.01 if is_shift else 2.0
+                    for enc in self.parameter_controls_raw:
+                        enc.mapping_sensitivity = sens
         super(param8, self).process_midi_bytes(midi_bytes, midi_processor)
 
     def _add_control(self, number):

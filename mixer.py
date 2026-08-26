@@ -37,7 +37,7 @@ class MixerComponent(MixerComponentBase):
     Default = ButtonControl()
     Metronome = ToggleButtonControl()
 
-    def process_relative_encoder(self, current_value, encoder_value, sensitivity=0.01, min_val=0.0, max_val=1.0):
+    def process_relative_encoder(self, current_value, encoder_value, sensitivity=1, min_val=0.0, max_val=1.0):
         """
         Traite les valeurs d'un encodeur relatif en mode relative_smooth_two_compliment
         
@@ -121,7 +121,8 @@ class MixerComponent(MixerComponentBase):
             print(f"Current Song Position: {current_pos:.2f}, Song Length: {song_length:.2f}, Ratio: {ratio:.2f}")
             midi_value = int(ratio * 127)
             self.Song_Position.send_value(midi_value)
-            print(f"Song Position: {ratio:.2f} sec -> MIDI Value: {midi_value}")
+            bt = self.song.get_current_beats_song_time()
+            self.send_display(PARAM_VALUE, 6, f"{bt.bars}.{bt.beats}.{bt.sub_division}")
 
     @listens('selected_parameter')
     def on_selected_parameter_changed(self):
@@ -170,17 +171,12 @@ class MixerComponent(MixerComponentBase):
     def on_Song_Position_changed(self, value, button):
         if self.mixer_control_enabled:
             current_pos = self.song.current_song_time
-            # Supposons que chaque pas de l'encodeur déplace la position de 1 seconde
-            delta = (value - 64) * 4
-            print(f"Current Pos: {current_pos}, Delta: {delta}, Value: {value}")
-            self.song.current_song_time = current_pos + delta
-            if self.song.current_song_time < 0:
-                self.song.current_song_time = 0
-            print(f"Song Position changed: {self.song.current_song_time:.2f} sec")
-            bars = int(self.song.current_song_time // 4 + 1)
-            beats = int(self.song.current_song_time % 4 + 1)
-            quarter_notes = int((self.song.current_song_time * 4) % 4 + 1)
-            self.send_display(PARAM_VALUE, 6, f"{bars}.{beats}.{quarter_notes}")
+            if value <= 64:
+                delta = value * 4
+            else:
+                delta = (value - 128) * 4
+            new_pos = max(0, current_pos + delta)
+            self.song.current_song_time = new_pos
     
     def set_control_names(self):
         self.send_display(PARAM_NAME, 0, "Tempo")
@@ -278,7 +274,7 @@ class MixerComponent(MixerComponentBase):
     def on_Cue_Volume_changed(self, value, button):
         if self.mixer_control_enabled:
             current_value = self.song.master_track.mixer_device.cue_volume.value
-            value = self.process_relative_encoder(current_value, value) 
+            value = self.process_relative_encoder(current_value, value, sensitivity=0.01)
             self.song.master_track.mixer_device.cue_volume.value  = value
             self.send_display(PARAM_VALUE, 2, self.song.master_track.mixer_device.cue_volume.str_for_value(value))
 
@@ -286,7 +282,7 @@ class MixerComponent(MixerComponentBase):
     def on_Master_Volume_changed(self, value, button):
         if self.mixer_control_enabled:
             current_value = self.song.master_track.mixer_device.volume.value
-            value = self.process_relative_encoder(current_value, value) 
+            value = self.process_relative_encoder(current_value, value, sensitivity=0.01)
             self.song.master_track.mixer_device.volume.value  = value
             self.send_display(PARAM_VALUE, 3, self.song.master_track.mixer_device.volume.str_for_value(value))
 
@@ -444,11 +440,30 @@ class MixerComponent(MixerComponentBase):
         self.on_groove_amount_changed()
         self.on_track_volume_changed()
         self.on_selected_parameter_changed()
-        self.on_song_position_changed()
+        self._on_song_position_changed()
         self.on_track_pan_changed()
         self.on_selected_device_changed()
         self._on_playing_state_changed()
         self._on_record_mode_changed()
         self._on_loop_changed()
         self._on_metronome_changed()
+        self._send_all_value_displays()
+
+    def _send_all_value_displays(self):
+        self.send_display(PARAM_VALUE, 0, f"{self.song.tempo:.2f} BPM")
+        self.send_display(PARAM_VALUE, 1, str(int(self.song.groove_amount / 1.3 * 100)) + "%")
+        self.send_display(PARAM_VALUE, 2, self.song.master_track.mixer_device.cue_volume.str_for_value(
+            self.song.master_track.mixer_device.cue_volume.value))
+        self.send_display(PARAM_VALUE, 3, self.song.master_track.mixer_device.volume.str_for_value(
+            self.song.master_track.mixer_device.volume.value))
+        if self._selected_track and hasattr(self._selected_track, 'mixer_device'):
+            self.send_display(PARAM_VALUE, 4, self._selected_track.mixer_device.volume.str_for_value(
+                self._selected_track.mixer_device.volume.value))
+            self.send_display(PARAM_VALUE, 5, self._selected_track.mixer_device.panning.str_for_value(
+                self._selected_track.mixer_device.panning.value))
+        bt = self.song.get_current_beats_song_time()
+        self.send_display(PARAM_VALUE, 6, f"{bt.bars}.{bt.beats}.{bt.sub_division}")
+        selected_param = self.song.view.selected_parameter
+        if liveobj_valid(selected_param):
+            self.send_display(PARAM_VALUE, 7, selected_param.str_for_value(selected_param.value))
 
