@@ -16,6 +16,7 @@ from functools import partial
 from .device_navigation import SimpleDeviceNavigationComponent
 from .device import SimpleDeviceParameterComponent
 from .mixer import MixerComponent
+from .midi_mapping import MidiMappingDetector
 from .colors import LIVE_COLORS_TO_MIDI_VALUES, RGB_COLOR_TABLE
 
 SCRIPT_NAME = 'param8'
@@ -100,7 +101,7 @@ class param8(ControlSurface):
             self._create_device_parameters()
             self.create_device_navigation()
             self.create_mixer()
-            # self.set_device_component(self._device)
+            self._midi_mapping = MidiMappingDetector(parent=self, name="Midi_Mapping", is_enabled=True)
         self.active_mode = 1
         self._device_parameters.look_for_param8_device(self.active_mode)
         self.send_sysex((240, 111, 5, 0, 247))
@@ -338,6 +339,7 @@ class param8(ControlSurface):
         if len(midi_bytes) >= 3:
             status = midi_bytes[0] & 0xF0
             channel = midi_bytes[0] & 0x0F
+            self._midi_mapping.on_midi_received(midi_bytes[0], channel, midi_bytes[1], midi_bytes[2])
             if status == 0xB0 and channel == MIDI_CHANNEL and midi_bytes[1] == 110:
                 is_shift = midi_bytes[2] > 63
                 if is_shift != self._shift_active:
