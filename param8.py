@@ -16,7 +16,6 @@ from functools import partial
 from .device_navigation import SimpleDeviceNavigationComponent
 from .device import SimpleDeviceParameterComponent
 from .mixer import MixerComponent
-from .midi_mapping import MidiMappingDetector
 from .colors import LIVE_COLORS_TO_MIDI_VALUES, RGB_COLOR_TABLE
 
 SCRIPT_NAME = 'param8'
@@ -101,7 +100,7 @@ class param8(ControlSurface):
             self._create_device_parameters()
             self.create_device_navigation()
             self.create_mixer()
-            self._midi_mapping = MidiMappingDetector(parent=self, name="Midi_Mapping", is_enabled=True)
+            # self.set_device_component(self._device)
         self.active_mode = 1
         self._device_parameters.look_for_param8_device(self.active_mode)
         self.send_sysex((240, 111, 5, 0, 247))
@@ -257,6 +256,25 @@ class param8(ControlSurface):
         self._mixer.set_parent(self)
 
 
+    def _handle_name_request(self, idx, is_button):
+        selected_param = self.song.view.selected_parameter
+        if not liveobj_valid(selected_param):
+            print(f"NameRequest: no parameter selected")
+            return
+        name = selected_param.name[:11]
+        preset = self.active_mode
+        if preset >= 6:
+            print(f"NameRequest: ignored on preset {preset}")
+            return
+        # Send SysEx status 15: F0 6F 0F <preset> <idx> <isButton> <ascii chars> F7
+        message = [240, 111, 15, preset, idx, is_button]
+        for c in name:
+            message.append(ord(c) & 0x7F)
+        message.append(247)
+        self._send_midi(tuple(message))
+        label = "button" if is_button else "encoder"
+        print(f"NameRequest: assigned '{name}' to {label} {idx} on preset {preset}")
+
     def send_sysex(self, midi_bytes):
         self._send_midi(midi_bytes)
 
@@ -314,6 +332,9 @@ class param8(ControlSurface):
 
     def handle_sysex(self, midi_bytes):
         if midi_bytes[1] == (111):
+            if midi_bytes[2] == 17:
+                self._handle_name_request(midi_bytes[3], midi_bytes[4])
+                return
             if midi_bytes[2] == 4:
                 self.active_mode = midi_bytes[3]
                 self._mixer.mixer_control_enabled = False
@@ -339,7 +360,6 @@ class param8(ControlSurface):
         if len(midi_bytes) >= 3:
             status = midi_bytes[0] & 0xF0
             channel = midi_bytes[0] & 0x0F
-            self._midi_mapping.on_midi_received(midi_bytes[0], channel, midi_bytes[1], midi_bytes[2])
             if status == 0xB0 and channel == MIDI_CHANNEL and midi_bytes[1] == 110:
                 is_shift = midi_bytes[2] > 63
                 if is_shift != self._shift_active:
