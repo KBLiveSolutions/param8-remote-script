@@ -1,0 +1,20 @@
+{
+  "_comment": "Custom device parameter mappings for param8. Key = device class_name (e.g. Operator, AutoFilter, InstrumentVector). Each device has a list of banks, each bank has a name and a list of 8 parameter names (use null or empty string for unused slots). Changes require reloading Live or opening a new project.",
+  "Operator": {
+    "banks": [
+      {
+        "name": "My Main",
+        "parameters": [
+          "Volume",
+          "Filter Res",
+          "Osc-A Level",
+          "Osc-B Level",
+          "Osc-C Level",
+          "Osc-D Level",
+          "Filter Freq",
+          "Time"
+        ]
+      }
+    ]
+  }
+}
