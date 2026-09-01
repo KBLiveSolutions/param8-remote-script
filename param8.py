@@ -52,7 +52,7 @@ button_actions = {
     "Metronome": 50,
     "Mute": 54,
     "Solo": 55,
-    "Capture": 53,
+    "Launch_Scene": 53,
     "Record": 51,
     "Play": 52,
     "Loop": 56,
@@ -71,10 +71,10 @@ slider_actions = {
     "Device_Encoder_6": 15,
     "Device_Encoder_7": 16,
     "Device_Encoder_8": 17,
-    "Tempo": 40,
-    "Groove": 41,
-    "Cue_Volume": 42,
-    "Master_Volume": 43,
+    "Tempo": 42,
+    "Scene_Select": 43,
+    "Cue_Volume": 41,
+    "Master_Volume": 40,
     "Track Volume": 44,
     "Track Pan": 45,
     "Song Position": 46,
@@ -246,13 +246,13 @@ class param8(ControlSurface):
             next_sends_button=self.buttons["SendsUp"],
             prev_sends_button=self.buttons["SendsDown"],
             tempo=self.encoders["Tempo"],
-            groove=self.encoders["Groove"],
+            scene_select=self.encoders["Scene_Select"],
             Mute=self.buttons["Mute"],
             Solo=self.buttons["Solo"],
             Record=self.buttons["Record"],
             Play=self.buttons["Play"],
             Loop=self.buttons["Loop"],
-            Capture=self.buttons["Capture"],
+            Launch_Scene=self.buttons["Launch_Scene"],
             Default=self.buttons["Default"],
             Metronome=self.buttons["Metronome"],
         )
@@ -452,12 +452,14 @@ class param8(ControlSurface):
             self._request_count += 1
 
     def handle_sysex(self, midi_bytes):
+        print(f"=== SYSEX IN: {list(midi_bytes[:8])} ===")
         if midi_bytes[1] == (111):
             if midi_bytes[2] == 17:
                 print(f"NameRequest SysEx received: {list(midi_bytes)}")
                 self._handle_name_request(midi_bytes[3], midi_bytes[4])
                 return
             if midi_bytes[2] == 4:
+                print(f"=== PRESET SYSEX received: {midi_bytes[3]} ===")
                 self.active_mode = midi_bytes[3]
                 self._mixer.mixer_control_enabled = False
                 self._device_parameters.device_control_enabled = False
