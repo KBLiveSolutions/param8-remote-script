@@ -28,14 +28,14 @@ class MixerComponent(MixerComponentBase):
     prev_sends_button = ButtonControl()
     tempo = SendReceiveValueControl()
     scene_select = SendReceiveValueControl()
-    Mute = ToggleButtonControl()
-    Solo = ToggleButtonControl()
-    Record = ToggleButtonControl()
-    Play = ToggleButtonControl()
-    Loop = ToggleButtonControl()
+    Mute = ToggleButtonControl(toggled_color='Mixer.ArmOn', untoggled_color='Mixer.ArmOff')
+    Solo = ToggleButtonControl(toggled_color='Mixer.ArmOn', untoggled_color='Mixer.ArmOff')
+    Record = ToggleButtonControl(toggled_color='Mixer.ArmOn', untoggled_color='Mixer.ArmOff')
+    Play = ToggleButtonControl(toggled_color='Mixer.ArmOn', untoggled_color='Mixer.ArmOff')
+    Loop = ToggleButtonControl(toggled_color='Mixer.ArmOn', untoggled_color='Mixer.ArmOff')
     Launch_Scene = ButtonControl()
     Default = ButtonControl()
-    Metronome = ToggleButtonControl()
+    Metronome = ToggleButtonControl(toggled_color='Mixer.ArmOn', untoggled_color='Mixer.ArmOff')
 
     def process_relative_encoder(self, current_value, encoder_value, sensitivity=1, min_val=0.0, max_val=1.0):
         """
@@ -225,19 +225,44 @@ class MixerComponent(MixerComponentBase):
         """Connecte les listeners pour la piste sélectionnée"""
         print("Connecting track listeners")
         if self._selected_track and hasattr(self._selected_track, 'mixer_device'):
-            # Connecter les listeners pour volume et pan
             self.on_track_volume_changed.subject = self._selected_track.mixer_device.volume
             self.on_track_pan_changed.subject = self._selected_track.mixer_device.panning
             self.on_selected_device_changed.subject = self._selected_track.view
-            
-            # Mettre à jour les valeurs initiales
+            self._on_track_mute_changed.subject = self._selected_track
+            self._on_track_solo_changed.subject = self._selected_track
+            self._on_track_arm_changed.subject = self._selected_track if self._selected_track.can_be_armed else None
+
             self.on_track_volume_changed()
             self.on_track_pan_changed()
+            self._on_track_mute_changed()
+            self._on_track_solo_changed()
+            self._on_track_arm_changed()
 
     def _disconnect_track_listeners(self):
         """Déconnecte les listeners de l'ancienne piste"""
         self.on_track_volume_changed.subject = None
         self.on_track_pan_changed.subject = None
+        self._on_track_mute_changed.subject = None
+        self._on_track_solo_changed.subject = None
+        self._on_track_arm_changed.subject = None
+
+    @listens('mute')
+    def _on_track_mute_changed(self):
+        if self.mixer_control_enabled and self._selected_track:
+            self.Mute.is_toggled = self._selected_track.mute
+            print(f"Track Mute changed: {self._selected_track.name} = {self._selected_track.mute}")
+
+    @listens('solo')
+    def _on_track_solo_changed(self):
+        if self.mixer_control_enabled and self._selected_track:
+            self.Solo.is_toggled = self._selected_track.solo
+            print(f"Track Solo changed: {self._selected_track.name} = {self._selected_track.solo}")
+
+    @listens('arm')
+    def _on_track_arm_changed(self):
+        if self.mixer_control_enabled and self._selected_track and self._selected_track.can_be_armed:
+            self.Record.is_toggled = self._selected_track.arm
+            print(f"Track Arm changed: {self._selected_track.name} = {self._selected_track.arm}")
 
     @listens("selected_device")
     def on_selected_device_changed(self):
@@ -429,6 +454,16 @@ class MixerComponent(MixerComponentBase):
         if self._parent:
             self._parent.send_display(param_type, param_index, value)
             print(f"Display sent: {param_type}, {param_index}, {value}")
+
+    def get_snapshotable_params(self):
+        params = [None] * 8
+        params[0] = self.song.master_track.mixer_device.volume
+        params[1] = self.song.master_track.mixer_device.cue_volume
+        if self._selected_track and hasattr(self._selected_track, 'mixer_device'):
+            params[4] = self._selected_track.mixer_device.volume
+            params[5] = self._selected_track.mixer_device.panning
+        params[7] = self.song.view.selected_parameter if liveobj_valid(self.song.view.selected_parameter) else None
+        return params
 
     def update_component(self):
         print("MixerComponent update_component called")

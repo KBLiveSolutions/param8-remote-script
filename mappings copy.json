@@ -1,0 +1,4022 @@
+{
+  "Amp": {
+    "banks": [
+      {
+        "name": "Global",
+        "parameters": [
+          "Amp Type",
+          "Bass",
+          "Middle",
+          "Treble",
+          "Presence",
+          "Input Gain",
+          "Volume",
+          "Dry/Wet"
+        ]
+      },
+      {
+        "name": "Dual/Mono",
+        "parameters": [
+          "Dual Mono",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Amp"
+  },
+  "AudioEffectGroupDevice": {
+    "banks": [
+      {
+        "name": "Macros",
+        "parameters": [
+          "Macro 1",
+          "Macro 2",
+          "Macro 3",
+          "Macro 4",
+          "Macro 5",
+          "Macro 6",
+          "Macro 7",
+          "Macro 8"
+        ]
+      },
+      {
+        "name": "Macros 2",
+        "parameters": [
+          "Macro 9",
+          "Macro 10",
+          "Macro 11",
+          "Macro 12",
+          "Macro 13",
+          "Macro 14",
+          "Macro 15",
+          "Macro 16"
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Audio Effect Rack"
+  },
+  "AutoFilter2": {
+    "banks": [
+      {
+        "name": "Main",
+        "parameters": [
+          "Frequency",
+          "Resonance",
+          "Drive",
+          "Filter Morph",
+          "Filter Type",
+          "Circuit",
+          "Output",
+          "Dry/Wet"
+        ]
+      },
+      {
+        "name": "LFO",
+        "parameters": [
+          "LFO Wave",
+          "LFO Amount",
+          {
+            "name": "LFO T Mode",
+            "display": "Time Mode"
+          },
+          {
+            "watch": "LFO T Mode",
+            "map": {
+              "Rate": {"name": "LFO Freq",  "display": "Freq"},
+              "Time": {"name": "LFO Time", "display": "Time"},
+              "Sixteenth": {"name": "LFO 16th", "display": "16th"},
+              "Triplet": {"name": "LFO Rate", "display": "Rate"},
+              "Dotted": {"name": "LFO Rate", "display": "Rate"},
+              "*": {"name": "LFO Rate", "display": "Rate"}
+            }
+          },
+          {
+            "name": "LFO S Mode",
+            "display": "Spin Mode"
+          },         
+          {
+            "watch": "LFO S Mode",
+            "map": {
+              "Spin": {"name": "LFO Spin", "display": "Spin"},
+              "Phase": {"name": "LFO Phase", "display": "Phase"},
+              "*": {"name": "LFO Spin", "display": "Spin"}
+            }
+          },
+          {
+            "watch": "LFO Wave",
+            "map": {
+              "S & H": "LFO Smoothing",
+              "*": "LFO Morph"
+            }
+          },
+          "LFO Offset"
+        ]
+      },
+      {
+        "name": "Envelope",
+        "parameters": [
+          "LFO Q Mode",
+          {"watch":"LFO Q Mode",
+            "map":{
+              "S&H": {"name": "LFO S&H", "display": "S&H"},
+              "Steps": {"name": "LFO Steps", "display": "Steps"}
+            }
+          },
+          "Env Attack",
+          "Env Release",
+          "Env Amount",
+          "Env Hold On",
+          "Env S&H On",
+          "Env S&H"
+        ]
+      },
+      {
+        "name": "Sidechain",
+        "parameters": [
+          "S/C EQ On",
+          "S/C EQ Type",
+          "S/C EQ Freq",
+          "S/C EQ Gain",
+          "Soft Clip On",
+          null,
+          null,
+          null
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Auto Filter"
+  },
+  "AutoPan2": {
+    "banks": [
+      {
+        "name": "Main",
+        "parameters": [
+          "Mode",
+                    {
+            "watch": "Mode",
+            "map": {
+              "Panning": "Waveform",
+              "Tremolo": "Harmonic",
+              "*": "Waveform"
+            }
+          },
+          "Time Mode",
+          {
+            "watch": "Time Mode",
+            "map": {
+              "Rate": "Frequency",
+              "Time": "Time",
+              "Synced": "Rate",
+              "Triplet": "Rate",
+              "Dotted": "Rate",
+              "16th": "16th",
+              "*": "Rate"
+            }
+          },
+          {
+            "watch": "Mode",
+            "map": {
+              "Panning": "Panning Shape",
+              "Tremolo": "Tremolo Shape",
+              "*": "Shape"
+            }
+          },
+          "Attack Time",
+          "Invert",
+          "Amount"
+        ]
+      },
+      {
+        "name": "Time",
+        "parameters": [
+          "Stereo Mode",          
+          {
+            "watch": "Stereo Mode",
+            "map": {
+              "Spin": "Spin",
+              "Phase": "Phase",
+              "*": "Spin"
+            }
+          },
+          "Dyn Mod",
+          "Vintage",
+          "Offset"
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Auto Pan-Tremolo"
+  },
+  "AutoShift": {
+    "banks": [
+      {
+        "name": "Bank 1",
+        "parameters": [
+          "Input Gain",
+          "Dry/Wet",
+          "Scale Aware",
+          "Glide Time",
+          "PB Range",
+          "Attack Time",
+          "Release Time",
+          "Latch"
+        ]
+      },
+      {
+        "name": "Bank 2",
+        "parameters": [
+          "Pitch St.",
+          "Pitch Scale Deg.",
+          "Pitch Fine",
+          "Formant Shift",
+          "Formant Follow",
+          "Quantizer On",
+          "Smooth On",
+          "Smooth Time"
+        ]
+      },
+      {
+        "name": "Bank 3",
+        "parameters": [
+          "Strength",
+          "Root",
+          "Scale",
+          "LFO On",
+          "LFO Retrig On",
+          "LFO Delay",
+          "LFO Fade-In",
+          "LFO Wave"
+        ]
+      },
+      {
+        "name": "LFO",
+        "parameters": [
+          "LFO Sync",
+          {
+            "watch": "LFO Sync",
+            "map": {
+              "Off": {"name": "LFO Rate", "display": "Rate"},
+              "On": {"name": "LFO Synced", "display": "Synced"},
+              "*": "LFO Rate"
+            }
+          },
+          "LFO > Pitch",
+          "LFO > Form.",
+          "LFO > Vol",
+          "LFO > Pan",
+          "Vibrato Rate",
+          "Vibrato Amt"
+        ]
+      },
+      {
+        "name": "Vibrato",
+        "parameters": [
+          "Vibrato Fade-In",
+          "Vibrato Rate",
+          "Vibrato Amt",
+          "Vibrato Natural",
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      {
+        "name": "MIDI Src",
+        "parameters": [
+          "MIDI > Pitch Src",
+          "MIDI > Form. Src",
+          "MIDI > Vol Src",
+          "MIDI > Pan Src",
+          "MIDI > Pitch",
+          "MIDI > Form.",
+          "MIDI > Vol",
+          "MIDI > Pan"
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Auto Shift"
+  },
+  "BeatRepeat": {
+    "banks": [
+      {
+        "name": "Main",
+        "parameters": [
+          "Grid",
+          "Interval",
+          "Offset",
+          "Gate",
+          "Pitch",
+          "Pitch Decay",
+          "Variation",
+          "Chance"
+        ]
+      },
+      {
+        "name": "Filt/Mix",
+        "parameters": [
+          "Filter On",
+          "Filter Freq",
+          "Filter Width",
+          null,
+          "Mix Type",
+          "Volume",
+          "Decay",
+          "Chance"
+        ]
+      },
+      {
+        "name": "Repeat Rate",
+        "parameters": [
+          "Repeat",
+          "Interval",
+          "Offset",
+          "Gate",
+          "Grid",
+          "Block Triplets",
+          "Variation",
+          "Variation Type"
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Beat Repeat"
+  },
+  "Cabinet": {
+    "banks": [
+      {
+        "name": "Bank 1",
+        "parameters": [
+          "Cabinet Type",
+          "Microphone Type",
+          "Microphone Position",
+          "Dual Mono",
+          "Dry/Wet",
+          null,
+          null,
+          null
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Cabinet"
+  },
+  "ChannelEq": {
+    "banks": [
+      {
+        "name": "Bank 1",
+        "parameters": [
+          "Highpass On",
+          "Low Gain",
+          "Mid Gain",
+          "Mid Freq",
+          "High Gain",
+          "Output",
+          null,
+          null
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Channel EQ"
+  },
+  "Chorus2": {
+    "banks": [
+      {
+        "name": "Bank 1",
+        "parameters": [
+          "Mode",
+          "Shape",
+          "Rate",
+          "Amount",
+          "Feedback",
+          "FB Invert",
+          "Offset",
+          "Delay Time"
+        ]
+      },
+      {
+        "name": "Bank 2",
+        "parameters": [
+          "Delay Taps",
+          "HP On",
+          "HP Freq",
+          "Width",
+          "Warmth",
+          "Output",
+          "Dry/Wet",
+          null
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Chorus-Ensemble"
+  },
+  "Collision": {
+    "banks": [
+      {
+        "name": "Main",
+        "parameters": [
+          "Res 1 Brightness",
+          "Res 1 Type",
+          "Mallet Stiffness",
+          "Mallet Noise Amount",
+          "Res 1 Inharmonics",
+          "Res 1 Decay",
+          "Res 1 Tune",
+          "Volume"
+        ]
+      },
+      {
+        "name": "Mallet",
+        "parameters": [
+          "Mallet On/Off",
+          "Mallet Volume",
+          "Mallet Noise Amount",
+          "Mallet Stiffness",
+          "Mallet Noise Color",
+          null,
+          null,
+          null
+        ]
+      },
+      {
+        "name": "Noise",
+        "parameters": [
+          "Noise Volume",
+          "Noise Filter Type",
+          "Noise Filter Freq",
+          "Noise Filter Q",
+          "Noise Attack",
+          "Noise Decay",
+          "Noise Sustain",
+          "Noise Release"
+        ]
+      },
+      {
+        "name": "Resonator 1, Set A",
+        "parameters": [
+          "Res 1 Decay",
+          "Res 1 Material",
+          "Res 1 Type",
+          "Res 1 Quality",
+          "Res 1 Tune",
+          "Res 1 Fine Tune",
+          "Res 1 Pitch Env.",
+          "Res 1 Pitch Env. Time"
+        ]
+      },
+      {
+        "name": "Resonator 1, Set B",
+        "parameters": [
+          "Res 1 Listening L",
+          "Res 1 Listening R",
+          "Res 1 Hit",
+          "Res 1 Brightness",
+          "Res 1 Decay",
+          "Res 1 Material",
+          "Res 1 Inharmonics",
+          "Res 1 Ratio"
+        ]
+      },
+      {
+        "name": "Resonator 2, Set A",
+        "parameters": [
+          "Res 2 Decay",
+          "Res 2 Material",
+          "Res 2 Type",
+          "Res 2 Quality",
+          "Res 2 Tune",
+          "Res 2 Fine Tune",
+          "Res 2 Pitch Env.",
+          "Res 2 Pitch Env. Time"
+        ]
+      },
+      {
+        "name": "Resonator 2, Set B",
+        "parameters": [
+          "Res 2 Listening L",
+          "Res 2 Listening R",
+          "Res 2 Hit",
+          "Res 2 Brightness",
+          "Res 2 Decay",
+          "Res 2 Material",
+          "Res 2 Inharmonics",
+          "Res 2 Ratio"
+        ]
+      }
+    ],
+    "category": "instruments",
+    "display_name": "Collision"
+  },
+  "Compressor2": {
+    "banks": [
+      {
+        "name": "Main",
+        "parameters": [
+          "Threshold",
+          "Ratio",
+          "Model",
+          "Knee",
+          "Attack",
+          "Release",
+          "Dry/Wet",
+          "Output"
+        ]
+      },
+      {
+        "name": "Sidechain",
+        "parameters": [
+          "S/C On",
+          "S/C Gain",
+          "S/C Mix",
+          "S/C Listen",
+          "S/C EQ On",
+          "S/C EQ Type",
+          "S/C EQ Freq",
+          "S/C EQ Q"
+        ]
+      },
+      {
+        "name": "Global",
+        "parameters": [
+          "Auto Release On/Off",
+          "Env Mode",
+          "Makeup",
+          "LookAhead",
+          null,
+          null,
+          "Dry/Wet",
+          "Output"
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Compressor"
+  },
+  "Corpus": {
+    "banks": [
+      {
+        "name": "Main",
+        "parameters": [
+          "Resonance Type",
+          "Brightness",
+          "Decay",
+          "Material",
+          "Inharmonics",
+          "Ratio",
+          "Tune",
+          "Dry Wet"
+        ]
+      },
+      {
+        "name": "Body",
+        "parameters": [
+          "Resonance Type",
+          "Ratio",
+          "Decay",
+          "Material",
+          "Inharmonics",
+          "Listening L",
+          "Listening R",
+          "Hit"
+        ]
+      },
+      {
+        "name": "LFO",
+        "parameters": [
+          "LFO On/Off",
+          "LFO Shape",
+          "LFO Amount",
+          "LFO Sync",
+          {
+            "watch": "LFO Sync",
+            "map": {
+              "Free": {"name": "LFO Rate", "display": "Rate"},
+              "Sync": {"name": "LFO Sync Rate", "display": "Sync Rate"},
+              "*": "LFO Rate"
+            }
+          },
+          "LFO Stereo Mode",
+          {
+            "watch": "LFO Stereo Mode",
+            "map": {
+              "Phase": {"name": "Phase", "display": "Phase"},
+              "Spin": {"name": "Spin", "display": "Spin"},
+              "*": "Spin"
+            }
+          },
+          "Offset"
+        ]
+      },
+      {
+        "name": "Tune & Sidechain",
+        "parameters": [
+          "MIDI Frequency",
+          "MIDI Mode",
+          "Tune",
+          "Fine",
+          "Spread",
+          "Brightness",
+          "Note Off",
+          "Off Decay"
+        ]
+      },
+      {
+        "name": "Filter & Mix",
+        "parameters": [
+          "Filter On/Off",
+          "Mid Freq",
+          "Width",
+          "Resonator Quality",
+          "Bleed",
+          "Gain",
+          "Dry Wet",
+          null
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Corpus"
+  },
+  "Delay": {
+    "banks": [
+      {
+        "name": "Main",
+        "parameters": [
+          "L Sync",
+          {
+            "watch": "L Sync",
+            "map": {
+              "Off": {"name": "L Time", "display": "L Time"},
+              "On": {"name": "L 16th", "display": "L 16th"},
+              "*": "L Time"
+            }
+          },
+          "L Offset",
+          "Link",
+          {
+            "watch": "R Sync",
+            "map": {
+              "Off": {"name": "R Time", "display": "R Time"},
+              "On": {"name": "R 16th", "display": "R 16th"},
+              "*": "R Time"
+            }
+          },
+          "R Offset",
+          "Feedback",
+          "Dry/Wet"
+        ]
+      },
+      {
+        "name": "Settings",
+        "parameters": [
+          "Smoothing",
+          "Ping Pong",
+          "R Sync",
+          "Freeze",
+          "Filter On",
+          "Filter Freq",
+          "Filter Width",
+          "Dry/Wet"
+        ]
+      },
+      {
+        "name": "LFO",
+        "parameters": [
+          "LFO Wave",
+          "LFO Morph",
+          {
+            "name": "LFO Mode",
+            "display": "Time Mode"
+          },
+          {
+            "watch": "LFO Mode",
+            "map": {
+              "Rate": {"name": "LFO Freq", "display": "Freq"},
+              "Time": {"name": "LFO Time", "display": "Time"},
+              "Synced": {"name": "LFO Synced", "display": "Synced"},
+              "Triplet": {"name": "LFO Synced", "display": "Synced"},
+              "Dotted": {"name": "LFO Synced", "display": "Synced"},
+              "16th": {"name": "LFO 16th", "display": "16th"},
+              "*": "LFO Freq"
+            }
+          },
+          "LFO > Delay",
+          "LFO > Filter",
+          "Feedback",
+          "Dry/Wet"
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Delay"
+  },
+  "Drift": {
+    "banks": [
+      {
+        "name": "Main",
+        "parameters": [
+          "Osc 1 Wave",
+          "Osc 1 Shape",
+          "Osc 1 Oct",
+          "Osc 1 Gain",
+          "Osc 2 Gain",
+          "LP Freq",
+          "LP Res",
+          "Volume"
+        ]
+      },
+      {
+        "name": "Oscillator",
+        "parameters": [
+          "Osc 1 Wave",
+          "Osc 1 Shape",
+          "Osc 1 Oct",
+          "Osc 1 Gain",
+          "Osc 2 Wave",
+          "Osc 2 Detune",
+          "Osc 2 Oct",
+          "Osc 2 Gain"
+        ]
+      },
+      {
+        "name": "Filter",
+        "parameters": [
+          "LP Type",
+          "LP Freq",
+          "LP Res",
+          "HP Freq",
+          null,
+          "LP Mod Amt 1",
+          null,
+          "LP Mod Amt 2"
+        ]
+      },
+      {
+        "name": "Envelopes",
+        "parameters": [
+          "Env 1 Attack",
+          "Env 1 Decay",
+          "Env 1 Sustain",
+          "Env 1 Release",
+          "Env 2 Attack",
+          "Env 2 Decay",
+          "Env 2 Sustain",
+          "Env 2 Release"
+        ]
+      },
+      {
+        "name": "LFO",
+        "parameters": [
+          "LFO Wave",
+          "LFO Time Mode",
+          "LFO Synced",
+          "LFO Amt",
+          "Cyc Env Tilt",
+          "Cyc Env Hold",
+          "Cyc Env Time Mode",
+          "Cyc Env Synced"
+        ]
+      },
+      {
+        "name": "Modulation",
+        "parameters": [
+          "Osc 1 Shape Mod Amt",
+          "Pitch Mod Amt 1",
+          "Pitch Mod Amt 2",
+          "LP Mod Amt 1",
+          "LP Mod Amt 2",
+          "LFO Mod Amt",
+          "Vel > Vol",
+          null
+        ]
+      },
+      {
+        "name": "Global",
+        "parameters": [
+          null,
+          "Thickness",
+          null,
+          "Glide Time",
+          "Drift",
+          "Transpose",
+          "Noise Gain",
+          "Volume"
+        ]
+      }
+    ],
+    "category": "instruments",
+    "display_name": "Drift"
+  },
+  "DrumBuss": {
+    "banks": [
+      {
+        "name": "Main",
+        "parameters": [
+          "Drive",
+          "Drive Type",
+          "Crunch",
+          "Boom Amt",
+          "Trim",
+          "Damping Freq",
+          "Output",
+          "Dry/Wet"
+        ]
+      },
+      {
+        "name": "Drive",
+        "parameters": [
+          "Drive",
+          "Drive Type",
+          "Transients",
+          "Crunch",
+          "Boom Freq",
+          "Boom Amt",
+          "Boom Decay",
+          "Boom Audition"
+        ]
+      },
+      {
+        "name": "Gain",
+        "parameters": [
+          "Trim",
+          "Output",
+          "Dry/Wet",
+          "Compressor On",
+          "Damping Freq",
+          null,
+          null,
+          null
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Drum Buss"
+  },
+  "DrumCell": {
+    "banks": [
+      {
+        "name": "Main",
+        "parameters": [
+          "Start",
+          "Length",
+          "Transpose",
+          "Detune",
+          "Vel > Vol",
+          "Env Mode",
+          "Pan",
+          "Volume"
+        ]
+      },
+      {
+        "name": "Filter + FXs",
+        "parameters": [
+          "Filter On",
+          "Filter Type",
+          "Filter Freq",
+          "Filter Res",
+          "FX On",
+          "FX Type",
+          "Pitch Env Amt",
+          "Pitch Env Decay"
+        ]
+      },
+      {
+        "name": "Envelope + Mod",
+        "parameters": [
+          "Env Mode",
+          "Attack",
+          "Hold",
+          "Decay",
+          "Vel > Vol",
+          "Mod Dest",
+          "Mod Amt",
+          "Volume"
+        ]
+      }
+    ],
+    "category": "instruments",
+    "display_name": "Drum Sampler"
+  },
+  "DrumGroupDevice": {
+    "banks": [
+      {
+        "name": "Macros",
+        "parameters": [
+          "Macro 1",
+          "Macro 2",
+          "Macro 3",
+          "Macro 4",
+          "Macro 5",
+          "Macro 6",
+          "Macro 7",
+          "Macro 8"
+        ]
+      },
+      {
+        "name": "Macros 2",
+        "parameters": [
+          "Macro 9",
+          "Macro 10",
+          "Macro 11",
+          "Macro 12",
+          "Macro 13",
+          "Macro 14",
+          "Macro 15",
+          "Macro 16"
+        ]
+      }
+    ],
+    "category": "instruments",
+    "display_name": "Drum Rack"
+  },
+  "Echo": {
+    "banks": [
+      {
+        "name": "Main",
+        "parameters": [
+          "L Sync",
+          {
+            "watch": "L Sync",
+            "map": {
+              "Off": {"name": "L Time", "display": "L Time"},
+              "On": {"name": "L Synced", "display": "L Synced"},
+              "*": "L Time"
+            }
+          },
+          {
+            "watch": "L Sync",
+            "map": {
+              "On": {"name": "L Sync Mode", "display": "L Mode"},
+              "*": {"name": "L Offset", "display": "L Offset"}
+            }
+          },
+          "Link",
+          "Feedback",
+          "FB Invert",
+          "Channel Mode",
+          "Dry Wet"
+        ]
+      },
+      {
+        "name": "R/Side",
+        "parameters": [
+          "R Sync",
+          {
+            "watch": "R Sync",
+            "map": {
+              "Off": {"name": "R Time", "display": "R Time"},
+              "On": {"name": "R Synced", "display": "R Synced"},
+              "*": "R Time"
+            }
+          },
+          {
+            "watch": "R Sync",
+            "map": {
+              "On": {"name": "R Sync Mode", "display": "R Mode"},
+              "*": {"name": "R Offset", "display": "R Offset"}
+            }
+          },
+          "Repitch",
+          "Feedback",
+          "Stereo Width",
+          "Output",
+          "Dry Wet"
+        ]
+      },
+      {
+        "name": "Filter",
+        "parameters": [
+          "Filter On",
+          "HP Freq",
+          "HP Res",
+          "LP Freq",
+          "LP Res",
+          "Input Gain",
+          "Output",
+          "Dry Wet"
+        ]
+      },
+      {
+        "name": "Modulation",
+        "parameters": [
+          "Mod Wave",
+          "Mod Sync",
+          {
+            "watch": "Mod Sync",
+            "map": {
+              "Off": {"name": "Mod Freq", "display": "Mod Freq"},
+              "On": {"name": "Mod Rate", "display": "Mod Rate"},
+              "*": "Mod Freq"
+            }
+          },
+          "Mod Phase",
+          "Env Mix",
+          "Dly < Mod",
+          "Flt < Mod",
+          "Mod 4x"
+        ]
+      },
+      {
+        "name": "Reverb",
+        "parameters": [
+          "Reverb Level",
+          "Reverb Loc",
+          "Reverb Decay",
+          null,
+          "Clip Dry",
+          "Input Gain",
+          "Output",
+          "Dry Wet"
+        ]
+      },
+      {
+        "name": "Gate/Duck",
+        "parameters": [
+          "Gate On",
+          "Gate Thr",
+          "Gate Release",
+          null,
+          "Duck On",
+          "Duck Thr",
+          "Duck Release",
+          null
+        ]
+      },
+      {
+        "name": "Character",
+        "parameters": [
+          "Noise On",
+          "Noise Amt",
+          "Noise Mrph",
+          null,
+          "Wobble On",
+          "Wobble Amt",
+          "Wobble Mrph",
+          null
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Echo"
+  },
+  "Eq8": {
+    "banks": [
+      {
+        "name": "Band Edit",
+        "parameters": [
+          {
+            "selector": "Band",
+            "values": ["1", "2", "3", "4", "5", "6", "7", "8"],
+            "view_property": "selected_band",
+            "template": ["{} Filter On A", "{} Filter Type A", "{} Frequency A", "{} Gain A", "{} Q A"],
+            "display": ["On", "Type", "Freq", "Gain", "Q"]
+          },
+          null, null, null, null, null,
+          "Adaptive Q",
+          "Output"
+        ]
+      },
+      {
+        "name": "Main",
+        "parameters": [
+          "1 Frequency A",
+          "1 Gain A",
+          "2 Frequency A",
+          "2 Gain A",
+          "3 Frequency A",
+          "3 Gain A",
+          "4 Frequency A",
+          "4 Gain A"
+        ]
+      },
+      {
+        "name": "Band On/Off",
+        "parameters": [
+          "1 Filter On A",
+          "2 Filter On A",
+          "3 Filter On A",
+          "4 Filter On A",
+          "5 Filter On A",
+          "6 Filter On A",
+          "7 Filter On A",
+          "8 Filter On A"
+        ]
+      },
+      {
+        "name": "Frequency",
+        "parameters": [
+          "1 Frequency A",
+          "2 Frequency A",
+          "3 Frequency A",
+          "4 Frequency A",
+          "5 Frequency A",
+          "6 Frequency A",
+          "7 Frequency A",
+          "8 Frequency A"
+        ]
+      },
+      {
+        "name": "Gain",
+        "parameters": [
+          "1 Gain A",
+          "2 Gain A",
+          "3 Gain A",
+          "4 Gain A",
+          "5 Gain A",
+          "6 Gain A",
+          "7 Gain A",
+          "8 Gain A"
+        ]
+      },
+      {
+        "name": "Resonance",
+        "parameters": [
+          "1 Q A",
+          "2 Q A",
+          "3 Q A",
+          "4 Q A",
+          "5 Q A",
+          "6 Q A",
+          "7 Q A",
+          "8 Q A"
+        ]
+      },
+      {
+        "name": "Filter Type",
+        "parameters": [
+          "1 Filter Type A",
+          "2 Filter Type A",
+          "3 Filter Type A",
+          "4 Filter Type A",
+          "5 Filter Type A",
+          "6 Filter Type A",
+          "7 Filter Type A",
+          "8 Filter Type A"
+        ]
+      },
+      {
+        "name": "Output",
+        "parameters": [
+          "Adaptive Q",
+          "Output",
+          "Scale",
+          "Adaptive Q",
+          "1 Filter On A",
+          "1 Filter Type A",
+          "Scale",
+          "Output"
+        ]
+      },
+      {
+        "name": "EQs 3-5",
+        "parameters": [
+          "3 Gain A",
+          "3 Frequency A",
+          "3 Q A",
+          "4 Gain A",
+          "4 Frequency A",
+          "4 Q A",
+          "5 Gain A",
+          "5 Frequency A"
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "EQ Eight"
+  },
+  "Erosion2": {
+    "banks": [
+      {
+        "name": "Bank 1",
+        "parameters": [
+          "Amount",
+          "Frequency",
+          "Filter Width",
+          "Noise Blend",
+          "Stereo Width",
+          null,
+          null,
+          null
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Erosion"
+  },
+  "FilterDelay": {
+    "banks": [
+      {
+        "name": "Main",
+        "parameters": [
+          "2 Filter Freq",
+          "2 Filter Width",
+          "2 Beat Delay",
+          "2 Feedback",
+          "1 Volume",
+          "2 Volume",
+          "3 Volume",
+          "Dry"
+        ]
+      },
+      {
+        "name": "L Filter",
+        "parameters": [
+          "1 Input On",
+          "1 Filter Freq",
+          "1 Filter Width",
+          "1 Feedback",
+          "1 Delay Mode",
+          "1 Beat Delay",
+          "1 Beat Swing",
+          "1 Volume"
+        ]
+      },
+      {
+        "name": "L+R Filter",
+        "parameters": [
+          "2 Input On",
+          "2 Filter Freq",
+          "2 Filter Width",
+          "2 Feedback",
+          "2 Delay Mode",
+          "2 Beat Delay",
+          "2 Beat Swing",
+          "2 Volume"
+        ]
+      },
+      {
+        "name": "R Filter",
+        "parameters": [
+          "3 Input On",
+          "3 Filter Freq",
+          "3 Filter Width",
+          "3 Feedback",
+          "3 Delay Mode",
+          "3 Beat Delay",
+          "3 Beat Swing",
+          "3 Volume"
+        ]
+      },
+      {
+        "name": "Mix",
+        "parameters": [
+          "1 Pan",
+          "2 Pan",
+          "3 Pan",
+          null,
+          "1 Volume",
+          "2 Volume",
+          "3 Volume",
+          "Dry"
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Filter Delay"
+  },
+  "FilterEQ3": {
+    "banks": [
+      {
+        "name": "EQ",
+        "parameters": [
+          "LowOn",
+          "MidOn",
+          "HighOn",
+          "GainLo",
+          "GainMid",
+          "GainHi",
+          "FreqLo",
+          "FreqHi"
+        ]
+      },
+      {
+        "name": "Slope",
+        "parameters": [
+          "Slope",
+          "GainLo",
+          "GainMid",
+          "GainHi",
+          "FreqLo",
+          "FreqHi",
+          "LowOn",
+          "MidOn"
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "EQ Three"
+  },
+  "Gate": {
+    "banks": [
+      {
+        "name": "Gate",
+        "parameters": [
+          "Threshold",
+          "Return",
+          "FlipMode",
+          "LookAhead",
+          "Attack",
+          "Hold",
+          "Release",
+          "Floor"
+        ]
+      },
+      {
+        "name": "Sidechain",
+        "parameters": [
+          "S/C On",
+          "S/C Gain",
+          "S/C Mix",
+          "S/C Listen",
+          "S/C EQ On",
+          "S/C EQ Type",
+          "S/C EQ Freq",
+          "S/C EQ Q"
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Gate"
+  },
+  "GlueCompressor": {
+    "banks": [
+      {
+        "name": "Compression",
+        "parameters": [
+          "Threshold",
+          "Ratio",
+          "Attack",
+          "Release",
+          "Peak Clip In",
+          "Range",
+          "Output",
+          "Dry/Wet"
+        ]
+      },
+      {
+        "name": "Sidechain",
+        "parameters": [
+          "S/C On",
+          "S/C Gain",
+          "S/C Mix",
+          null,
+          "S/C EQ On",
+          "S/C EQ Type",
+          "S/C EQ Freq",
+          "S/C EQ Q"
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Glue Compressor"
+  },
+  "GrainDelay": {
+    "banks": [
+      {
+        "name": "Main",
+        "parameters": [
+          "Frequency",
+          "Pitch",
+          "Random",
+          "Spray",
+          "Delay Mode",
+          {
+            "watch": "Delay Mode",
+            "map": {
+              "Off": {"name": "Time Delay", "display": "Time"},
+              "On": {"name": "Beat Delay", "display": "Beat"},
+              "*": "Time Delay"
+            }
+          },
+          "Feedback",
+          "DryWet"
+        ]
+      },
+      {
+        "name": "Beat",
+        "parameters": [
+          "Delay Mode",
+          "Beat Delay",
+          "Beat Swing",
+          "Feedback",
+          "Pitch",
+          "Spray",
+          null,
+          "DryWet"
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Grain Delay"
+  },
+  "Hybrid": {
+    "banks": [
+      {
+        "name": "Main",
+        "parameters": [
+          "Blend",
+          "Routing",
+          "Predelay Sync",
+          {
+            "watch": "Predelay Sync",
+            "map": {
+              "Off": {"name": "Predelay", "display": "Predelay"},
+              "On": {"name": "Predelay 16th", "display": "Pre 16th"},
+              "*": "Predelay"
+            }
+          },
+          "Send Gain",
+          {"name": "Width", "display":"Stereo"},
+          "Predelay FB",
+          "Dry/Wet"
+        ]
+      },
+      {
+        "name": "Algorithm",
+        "parameters": [
+          "Algo Type",
+          "Decay",
+          "Size",
+          {
+            "watch": "Algo Type",
+            "map": {
+              "Prism": {"name": "Pr Low Mult", "display": "Lo Mult"},
+              "*": "Damping"
+            }
+          },
+          {
+            "watch": "Algo Type",
+            "map": {
+              "Dark Hall": {"name": "DH Shape", "display": "Shape"},
+              "Quartz": {"name": "Qz Low Damp", "display": "Low Damp"},
+              "Shimmer": {"name": "Sh Pitch Shift", "display": "Pitch"},
+              "Tides": {"name": "Ti Tide", "display": "Tide"},
+              "Prism": {"name": "Pr High Mult", "display": "Hi Mult"},
+              "*": "DH BassMult"
+            }
+          },
+          {
+            "watch": "Algo Type",
+            "map": {
+              "Dark Hall": {"name": "DH BassMult", "display": "Bass Mult"},
+              "Quartz": {"name": "Qz Distance", "display": "Distance"},
+              "Shimmer": {"name": "Sh Shimmer", "display": "Shimmer"},
+              "Tides": {"name": "Ti Rate", "display": "Rate"},
+              "Prism": {"name": "Pr X Over", "display": "X Over"},
+              "*": "Damping"
+            }
+          },
+          {
+            "watch": "Algo Type",
+            "map": {
+              "Dark Hall": {"name": "Modulation", "display": "Modulation"},
+              "Quartz": {"name": "Modulation", "display": "Modulation"},
+              "Shimmer": {"name": "Modulation", "display": "Modulation"},
+              "Tides":  {"name": "Ti Waveform", "display": "Waveform"},
+              "Prism": null
+            }
+          },
+          {
+            "watch": "Algo Type",
+            "map": {
+              "Dark Hall": {"name": "DH Bass X", "display": "Bass X"},
+              "Quartz": {"name": "Diffusion", "display": "Diffusion"},
+              "Shimmer": {"name": "Diffusion", "display": "Diffusion"},
+              "Tides":  {"name": "Ti Phase", "display": "Phase"},
+              "Prism": null
+            }
+          }
+        ]
+      },
+      {
+        "name": "Global",
+        "parameters": [
+          "Freeze",
+          "Freeze In",
+          "Algo Delay",
+          "Vintage",
+          "Bass Mono",
+          null
+        ]
+      },
+      {
+        "name": "EQ",
+        "parameters": [
+          "EQ On",
+          "EQ Pre Algo",
+          "EQ Lo Type",
+          "EQ Lo Freq",
+          "EQ Lo Gain",
+          "EQ Hi Type",
+          "EQ Hi Freq",
+          "EQ Hi Gain"
+        ]
+      },
+      {
+        "name": "EQ Peaks",
+        "parameters": [
+          "EQ Peak 1 Freq",
+          "EQ Peak 1 Q",
+          "EQ Peak 1 Gain",
+          null,
+          "EQ Peak 2 Freq",
+          "EQ Peak 2 Q",
+          "EQ Peak 2 Gain",
+          null
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Hybrid Reverb"
+  },
+  "InstrumentGroupDevice": {
+    "banks": [
+      {
+        "name": "Macros",
+        "parameters": [
+          "Macro 1",
+          "Macro 2",
+          "Macro 3",
+          "Macro 4",
+          "Macro 5",
+          "Macro 6",
+          "Macro 7",
+          "Macro 8"
+        ]
+      },
+      {
+        "name": "Macros 2",
+        "parameters": [
+          "Macro 9",
+          "Macro 10",
+          "Macro 11",
+          "Macro 12",
+          "Macro 13",
+          "Macro 14",
+          "Macro 15",
+          "Macro 16"
+        ]
+      }
+    ],
+    "category": "instruments",
+    "display_name": "Instrument Rack"
+  },
+  "InstrumentImpulse": {
+    "banks": [
+      {
+        "name": "Main",
+        "parameters": [
+          "Global Time",
+          "Global Transpose",
+          "1 Transpose",
+          "2 Transpose",
+          "3 Transpose",
+          "4 Transpose",
+          "5 Transpose",
+          "6 Transpose"
+        ]
+      },
+      {
+        "name": "Pad 1",
+        "parameters": [
+          "1 Start",
+          "1 Transpose",
+          "1 Stretch Factor",
+          "1 Saturator Drive",
+          "1 Filter Freq",
+          "1 Filter Res",
+          "1 Pan",
+          "1 Volume"
+        ]
+      },
+      {
+        "name": "Pad 2",
+        "parameters": [
+          "2 Start",
+          "2 Transpose",
+          "2 Stretch Factor",
+          "2 Saturator Drive",
+          "2 Filter Freq",
+          "2 Filter Res",
+          "2 Pan",
+          "2 Volume"
+        ]
+      },
+      {
+        "name": "Pad 3",
+        "parameters": [
+          "3 Start",
+          "3 Transpose",
+          "3 Stretch Factor",
+          "3 Saturator Drive",
+          "3 Filter Freq",
+          "3 Filter Res",
+          "3 Pan",
+          "3 Volume"
+        ]
+      },
+      {
+        "name": "Pad 4",
+        "parameters": [
+          "4 Start",
+          "4 Transpose",
+          "4 Stretch Factor",
+          "4 Saturator Drive",
+          "4 Filter Freq",
+          "4 Filter Res",
+          "4 Pan",
+          "4 Volume"
+        ]
+      },
+      {
+        "name": "Pad 5",
+        "parameters": [
+          "5 Start",
+          "5 Transpose",
+          "5 Stretch Factor",
+          "5 Saturator Drive",
+          "5 Filter Freq",
+          "5 Filter Res",
+          "5 Pan",
+          "5 Volume"
+        ]
+      },
+      {
+        "name": "Pad 6",
+        "parameters": [
+          "6 Start",
+          "6 Transpose",
+          "6 Stretch Factor",
+          "6 Saturator Drive",
+          "6 Filter Freq",
+          "6 Filter Res",
+          "6 Pan",
+          "6 Volume"
+        ]
+      },
+      {
+        "name": "Pad 7",
+        "parameters": [
+          "7 Start",
+          "7 Transpose",
+          "7 Stretch Factor",
+          "7 Saturator Drive",
+          "7 Filter Freq",
+          "7 Filter Res",
+          "7 Pan",
+          "7 Volume"
+        ]
+      },
+      {
+        "name": "Pad 8",
+        "parameters": [
+          "8 Start",
+          "8 Transpose",
+          "8 Stretch Factor",
+          "8 Saturator Drive",
+          "8 Filter Freq",
+          "8 Filter Res",
+          "8 Pan",
+          "8 Volume"
+        ]
+      }
+    ],
+    "category": "instruments",
+    "display_name": "Impulse"
+  },
+  "InstrumentMeld": {
+    "banks": [
+      {
+        "name": "Bank 1",
+        "parameters": [
+          "A On",
+          "A Keytracking",
+          "A Transpose",
+          "A Transp Scale",
+          "A Octave",
+          "A Detune",
+          "A Osc Type",
+          "A Osc Shape"
+        ]
+      },
+      {
+        "name": "Bank 2",
+        "parameters": [
+          "A Osc Tone",
+          "A Osc Scale Aware",
+          "A Reset",
+          "A Reset To Voice Offset",
+          "A Filter On",
+          "A Filter Type",
+          "A Filter Freq",
+          "A Filter Q"
+        ]
+      },
+      {
+        "name": "Bank 3",
+        "parameters": [
+          "A Filter L-B-H-N",
+          "A Filter Filter Scale Aware",
+          "A LFO 1 Type",
+          "A LFO 1 Sync",
+          "A LFO 1 Retrigger",
+          "A LFO 1 Rate",
+          "A LFO 1 S. Rate",
+          "A LFO 1 Phase"
+        ]
+      },
+      {
+        "name": "Bank 4",
+        "parameters": [
+          "A LFO 1 Shape",
+          "A LFO 1 Fold",
+          "A LFO 1 FX 1 Type",
+          "A LFO 1 FX 1 Scale",
+          "A LFO 1 FX 2 Type",
+          "A LFO 1 FX 2 Ramp",
+          "A LFO 2 Waveform",
+          "A LFO 2 Sync"
+        ]
+      },
+      {
+        "name": "Bank 5",
+        "parameters": [
+          "A LFO 2 Rate",
+          "A LFO 2 S. Rate",
+          "A LFO 2 Retrigger",
+          "A LFO 2 Phase Offset",
+          "A Amp Attack",
+          "A Amp Decay",
+          "A Amp Release",
+          "A Amp A Slope"
+        ]
+      },
+      {
+        "name": "Bank 6",
+        "parameters": [
+          "A Amp D Slope",
+          "A Amp R Slope",
+          "A Amp Sustain",
+          "A Amp Loop Mode",
+          "A Mod Attack",
+          "A Mod Decay",
+          "A Mod Release",
+          "A Mod Initial"
+        ]
+      },
+      {
+        "name": "Bank 7",
+        "parameters": [
+          "A Mod Peak",
+          "A Mod Sustain",
+          "A Mod Final",
+          "A Mod A Slope",
+          "A Mod D Slope",
+          "A Mod R Slope",
+          "A Mod Loop Mode",
+          "A Tone Filter"
+        ]
+      },
+      {
+        "name": "Bank 8",
+        "parameters": [
+          "A Pan",
+          "A Volume",
+          "A Glide Mode",
+          "A Glide Time",
+          "B On",
+          "B Keytracking",
+          "B Transpose",
+          "B Transp Scale"
+        ]
+      },
+      {
+        "name": "Bank 9",
+        "parameters": [
+          "B Octave",
+          "B Detune",
+          "B Osc Type",
+          "B Osc Shape",
+          "B Osc Tone",
+          "B Osc Scale Aware",
+          "B Reset",
+          "B Reset To Voice Offset"
+        ]
+      },
+      {
+        "name": "Bank 10",
+        "parameters": [
+          "B Filter On",
+          "B Filter Type",
+          "B Filter Freq",
+          "B Filter Q",
+          "B Filter L-B-H-N",
+          "B Filter Filter Scale Aware",
+          "B LFO 1 Type",
+          "B LFO 1 Sync"
+        ]
+      },
+      {
+        "name": "Bank 11",
+        "parameters": [
+          "B LFO 1 Retrigger",
+          "B LFO 1 Rate",
+          "B LFO 1 S. Rate",
+          "B LFO 1 Phase",
+          "B LFO 1 Shape",
+          "B LFO 1 Fold",
+          "B LFO 1 FX 1 Type",
+          "B LFO 1 FX 1 Scale"
+        ]
+      },
+      {
+        "name": "Bank 12",
+        "parameters": [
+          "B LFO 1 FX 2 Type",
+          "B LFO 1 FX 2 Ramp",
+          "B LFO 2 Waveform",
+          "B LFO 2 Sync",
+          "B LFO 2 Rate",
+          "B LFO 2 S. Rate",
+          "B LFO 2 Retrigger",
+          "B LFO 2 Phase Offset"
+        ]
+      },
+      {
+        "name": "Bank 13",
+        "parameters": [
+          "B Amp Attack",
+          "B Amp Decay",
+          "B Amp Release",
+          "B Amp A Slope",
+          "B Amp D Slope",
+          "B Amp R Slope",
+          "B Amp Sustain",
+          "B Amp Loop Mode"
+        ]
+      },
+      {
+        "name": "Bank 14",
+        "parameters": [
+          "B Mod Attack",
+          "B Mod Decay",
+          "B Mod Release",
+          "B Mod Initial",
+          "B Mod Peak",
+          "B Mod Sustain",
+          "B Mod Final",
+          "B Mod A Slope"
+        ]
+      },
+      {
+        "name": "Bank 15",
+        "parameters": [
+          "B Mod D Slope",
+          "B Mod R Slope",
+          "B Mod Loop Mode",
+          "B Tone Filter",
+          "B Pan",
+          "B Volume",
+          "B Glide Mode",
+          "B Glide Time"
+        ]
+      },
+      {
+        "name": "Bank 16",
+        "parameters": [
+          "Engine B Delay",
+          "Drive",
+          "Limiter On",
+          "Link Envelopes",
+          "Scale Aware",
+          "Voice Spread",
+          "Volume",
+          "Mono Legato"
+        ]
+      }
+    ],
+    "category": "instruments",
+    "display_name": "Meld"
+  },
+  "InstrumentVector": {
+    "banks": [
+      {
+        "name": "Main",
+        "parameters": [
+          "Osc 1 Pos",
+          "Osc 1 Transp",
+          "Osc 2 Pos",
+          "Osc 2 Transp",
+          "Flt 1 Freq",
+          "Flt 1 Res",
+          "Global Mod Amount",
+          "Volume"
+        ]
+      },
+      {
+        "name": "Oscillator 1",
+        "parameters": [
+          "Osc 1 Transp",
+          "Osc 1 Detune",
+          "Osc 1 Pos",
+          "Osc 1 Effect 1",
+          "Osc 1 Effect 2",
+          "Osc 1 Pan",
+          "Osc 1 Gain",
+          "Osc 1 On"
+        ]
+      },
+      {
+        "name": "Oscillator 2",
+        "parameters": [
+          "Osc 2 Transp",
+          "Osc 2 Detune",
+          "Osc 2 Pos",
+          "Osc 2 Effect 1",
+          "Osc 2 Effect 2",
+          "Osc 2 Pan",
+          "Osc 2 Gain",
+          "Osc 2 On"
+        ]
+      },
+      {
+        "name": "Filter 1",
+        "parameters": [
+          "Flt 1 On",
+          "Flt 1 Freq",
+          "Flt 1 Res",
+          "Flt 1 Drive",
+          "Flt 1 Type",
+          "Flt 1 Slope",
+          "Flt 1 BP/NO/MO",
+          null
+        ]
+      },
+      {
+        "name": "Filter 2",
+        "parameters": [
+          "Flt 2 On",
+          "Flt 2 Freq",
+          "Flt 2 Res",
+          "Flt 2 Drive",
+          "Flt 2 Type",
+          "Flt 2 Slope",
+          "Flt 2 BP/NO/MO",
+          null
+        ]
+      },
+      {
+        "name": "Amp Envelope",
+        "parameters": [
+          "Amp Attack",
+          "Amp Decay",
+          "Amp Sustain",
+          "Amp Release",
+          "Amp A Slope",
+          "Amp D Slope",
+          "Amp R Slope",
+          "Amp Loop Mode"
+        ]
+      },
+      {
+        "name": "Envelope 2/3",
+        "parameters": [
+          "Env 2 Attack",
+          "Env 2 Decay",
+          "Env 2 Sustain",
+          "Env 2 Release",
+          "Env 3 Attack",
+          "Env 3 Decay",
+          "Env 3 Sustain",
+          "Env 3 Release"
+        ]
+      },
+      {
+        "name": "LFO 1/2",
+        "parameters": [
+          "LFO 1 Amount",
+          "LFO 1 Shape",
+          "LFO 1 Rate",
+          "LFO 1 Sync",
+          "LFO 2 Amount",
+          "LFO 2 Shape",
+          "LFO 2 Rate",
+          "LFO 2 Sync"
+        ]
+      },
+      {
+        "name": "Global",
+        "parameters": [
+          "Time",
+          "Global Mod Amount",
+          "Unison Amount",
+          "Transpose",
+          "Glide",
+          "Sub Gain",
+          "Sub Transpose",
+          "Volume"
+        ]
+      }
+    ],
+    "category": "instruments",
+    "display_name": "Wavetable"
+  },
+  "Limiter": {
+    "banks": [
+      {
+        "name": "Bank 1",
+        "parameters": [
+          "Input Gain",
+          "Ceiling",
+          "Release",
+          "Auto",
+          "Link",
+          "M/S Link",
+          "Lookahead",
+          "Routing"
+        ]
+      },
+      {
+        "name": "Bank 2",
+        "parameters": [
+          "Mode",
+          "Maximize On",
+          "Threshold",
+          "Output",
+          null,
+          null,
+          null,
+          null
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Limiter"
+  },
+  "Looper": {
+    "banks": [
+      {
+        "name": "Bank 1",
+        "parameters": [
+          "State",
+          "Feedback",
+          "Reverse",
+          "Monitor",
+          "Speed",
+          "Quantization",
+          "Song Control",
+          "Tempo Control"
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Looper"
+  },
+  "LoungeLizard": {
+    "banks": [
+      {
+        "name": "Main",
+        "parameters": [
+          "M Stiffness",
+          "M Force",
+          "Noise Amount",
+          "F Tine Vol",
+          "F Tone Vol",
+          "F Release",
+          "P Symmetry",
+          "Volume"
+        ]
+      },
+      {
+        "name": "Mallet",
+        "parameters": [
+          "M Stiffness",
+          "M Force",
+          "Noise Pitch",
+          "Noise Decay",
+          "Noise Amount",
+          "M Stiff < Vel",
+          "M Force < Vel",
+          "Volume"
+        ]
+      },
+      {
+        "name": "Fork",
+        "parameters": [
+          "F Tine Color",
+          "F Tine Decay",
+          "F Tine Vol",
+          "F Tone Vol",
+          "F Tone Decay",
+          "F Release",
+          "F Tine < Key",
+          "Volume"
+        ]
+      },
+      {
+        "name": "Damper",
+        "parameters": [
+          "Damp Tone",
+          "Damp Balance",
+          "Damp Amount",
+          null,
+          null,
+          null,
+          null,
+          "Volume"
+        ]
+      },
+      {
+        "name": "Pickup",
+        "parameters": [
+          "P Symmetry",
+          "P Distance",
+          "P Amp In",
+          "P Amp Out",
+          "Pickup Model",
+          "P Amp < Key",
+          null,
+          "Volume"
+        ]
+      },
+      {
+        "name": "Modulation",
+        "parameters": [
+          "M Stiff < Vel",
+          "M Stiff < Key",
+          "M Force < Vel",
+          "M Force < Key",
+          "Noise < Key",
+          "F Tine < Key",
+          "P Amp < Key",
+          "Volume"
+        ]
+      },
+      {
+        "name": "Global",
+        "parameters": [
+          "KB Stretch",
+          "PB Range",
+          null,
+          null,
+          "Voices",
+          "Semitone",
+          "Detune",
+          "Volume"
+        ]
+      }
+    ],
+    "category": "instruments",
+    "display_name": "Electric"
+  },
+  "MidiArpeggiator": {
+    "banks": [
+      {
+        "name": "Main",
+        "parameters": [
+          "Style",
+          "Free Rate",
+          "Gate",
+          "Offset",
+          "Hold On",
+          "Tranpose Key",
+          "Transp. Steps",
+          "Transp. Dist."
+        ]
+      },
+      {
+        "name": "Rhythm",
+        "parameters": [
+          "Sync On",
+          "Free Rate",
+          "Groove",
+          "Offset",
+          "Repeats",
+          "Gate",
+          "Retrigger Mode",
+          "Ret. Interval"
+        ]
+      },
+      {
+        "name": "Pitch/Vel.",
+        "parameters": [
+          "Tranpose Mode",
+          "Tranpose Key",
+          "Transp. Steps",
+          "Transp. Dist.",
+          "Velocity On",
+          "Vel. Retrigger",
+          "Velocity Decay",
+          "Velocity Target"
+        ]
+      }
+    ],
+    "category": "midi_effects",
+    "display_name": "Arpeggiator"
+  },
+  "MidiCcControl": {
+    "banks": [
+      {
+        "name": "1-8",
+        "parameters": [
+          "Mod Wheel",
+          "Pitch Bend",
+          "Pressure",
+          "Custom A",
+          "Custom B",
+          "Custom C",
+          "Custom D",
+          "Custom E"
+        ]
+      },
+      {
+        "name": "9-16",
+        "parameters": [
+          "Custom F",
+          "Custom G",
+          "Custom H",
+          "Custom I",
+          "Custom J",
+          "Custom K",
+          "Custom L",
+          "Custom M"
+        ]
+      }
+    ],
+    "category": "midi_effects",
+    "display_name": "CC Control"
+  },
+  "MidiChord": {
+    "banks": [
+      {
+        "name": "Main",
+        "parameters": [
+          "Shift1",
+          "Shift2",
+          "Shift3",
+          "Shift4",
+          "Shift5",
+          "Velocity5",
+          "Shift6",
+          "Velocity6"
+        ]
+      },
+      {
+        "name": "Shift",
+        "parameters": [
+          "Shift1",
+          "Shift2",
+          "Shift3",
+          "Shift4",
+          "Shift5",
+          "Shift6",
+          null,
+          null
+        ]
+      },
+      {
+        "name": "Shift %",
+        "parameters": [
+          "Velocity1",
+          "Velocity2",
+          "Velocity3",
+          "Velocity4",
+          "Velocity5",
+          "Velocity6",
+          null,
+          null
+        ]
+      }
+    ],
+    "category": "midi_effects",
+    "display_name": "Chord"
+  },
+  "MidiEffectGroupDevice": {
+    "banks": [
+      {
+        "name": "Macros",
+        "parameters": [
+          "Macro 1",
+          "Macro 2",
+          "Macro 3",
+          "Macro 4",
+          "Macro 5",
+          "Macro 6",
+          "Macro 7",
+          "Macro 8"
+        ]
+      },
+      {
+        "name": "Macros 2",
+        "parameters": [
+          "Macro 9",
+          "Macro 10",
+          "Macro 11",
+          "Macro 12",
+          "Macro 13",
+          "Macro 14",
+          "Macro 15",
+          "Macro 16"
+        ]
+      }
+    ],
+    "category": "midi_effects",
+    "display_name": "MIDI Effect Rack"
+  },
+  "MidiNoteLength": {
+    "banks": [
+      {
+        "name": "Bank 1",
+        "parameters": [
+          "Trigger Source",
+          "Latch",
+          "Sync On",
+          "Synced Length",
+          "Time Length",
+          "Gate",
+          "Release Velocity",
+          "Decay Time"
+        ]
+      },
+      {
+        "name": "Bank 2",
+        "parameters": [
+          "Decay Key Scale",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      }
+    ],
+    "category": "midi_effects",
+    "display_name": "Note Length"
+  },
+  "MidiPitcher": {
+    "banks": [
+      {
+        "name": "Bank 1",
+        "parameters": [
+          "Pitch",
+          "Pitch Scale Degrees",
+          "Lowest",
+          "Range",
+          "Mode",
+          "Use Current Scale",
+          "Step Width",
+          "Step Width Scale Degrees"
+        ]
+      }
+    ],
+    "category": "midi_effects",
+    "display_name": "Pitch"
+  },
+  "MidiRandom": {
+    "banks": [
+      {
+        "name": "Bank 1",
+        "parameters": [
+          "Chance",
+          "Choices",
+          "Interval",
+          "Sign",
+          "Mode",
+          "Use Current Scale",
+          null,
+          null
+        ]
+      }
+    ],
+    "category": "midi_effects",
+    "display_name": "Random"
+  },
+  "MidiScale": {
+    "banks": [
+      {
+        "name": "Bank 1",
+        "parameters": [
+          "Base",
+          "InternalScale",
+          "Use Current Scale",
+          "Transpose",
+          "Fold",
+          "Lowest",
+          "Range",
+          "Map 0"
+        ]
+      },
+      {
+        "name": "Bank 2",
+        "parameters": [
+          "Map 1",
+          "Map 2",
+          "Map 3",
+          "Map 4",
+          "Map 5",
+          "Map 6",
+          "Map 7",
+          "Map 8"
+        ]
+      },
+      {
+        "name": "Bank 3",
+        "parameters": [
+          "Map 9",
+          "Map 10",
+          "Map 11",
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      }
+    ],
+    "category": "midi_effects",
+    "display_name": "Scale"
+  },
+  "MidiVelocity": {
+    "banks": [
+      {
+        "name": "Bank 1",
+        "parameters": [
+          "Drive",
+          "Compand",
+          "Random",
+          "Mode",
+          "Operation",
+          "Out Hi",
+          "Out Low",
+          "Range"
+        ]
+      },
+      {
+        "name": "Bank 2",
+        "parameters": [
+          "Lowest",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      }
+    ],
+    "category": "midi_effects",
+    "display_name": "Velocity"
+  },
+  "MultiSampler": {
+    "banks": [
+      {
+        "name": "Main",
+        "parameters": [
+          "Filter Freq",
+          "Filter Res",
+          "Fe < Env",
+          "Fe Decay",
+          "Ve Attack",
+          "Ve Release",
+          "Transpose",
+          "Volume"
+        ]
+      },
+      {
+        "name": "Volume",
+        "parameters": [
+          "Volume",
+          "Ve Attack",
+          "Ve Decay",
+          "Ve Sustain",
+          "Ve Release",
+          "Vol < Vel",
+          "Ve R < Vel",
+          "Time"
+        ]
+      },
+      {
+        "name": "Filter",
+        "parameters": [
+          "Filter Type",
+          "Filter Drive",
+          "Filter Freq",
+          "Filter Res",
+          "Filt < Vel",
+          "Filt < Key",
+          "Fe < Env",
+          null
+        ]
+      },
+      {
+        "name": "Filter Envelope",
+        "parameters": [
+          "Fe Attack",
+          "Fe Peak",
+          "Fe Decay",
+          "Fe Sustain",
+          "Fe Release",
+          "Fe End",
+          "Fe Mode",
+          "Fe Retrig"
+        ]
+      },
+      {
+        "name": "LFO 1",
+        "parameters": [
+          "L 1 On",
+          null,
+          null,
+          null,
+          "Vol < LFO",
+          "Filt < LFO",
+          "Pan < LFO",
+          "Pitch < LFO"
+        ]
+      },
+      {
+        "name": "LFO 2",
+        "parameters": [
+          "L 2 On",
+          "Reverse",
+          "Snap",
+          "Sample Selector",
+          "Osc On",
+          "Spread",
+          "Key Zone Shift",
+          "Glide Mode"
+        ]
+      },
+      {
+        "name": "LFO 3",
+        "parameters": [
+          "L 3 On",
+          "Glide Time",
+          "Time",
+          "Time < Key",
+          "Transpose",
+          "Detune",
+          "Pitch < LFO",
+          "Pe On"
+        ]
+      },
+      {
+        "name": "Oscillator",
+        "parameters": [
+          "Volume",
+          "Vol < Vel",
+          "Vol < LFO",
+          "Pan",
+          "Pan < Rnd",
+          "Pan < LFO",
+          "Ve Attack",
+          "Ve Init"
+        ]
+      },
+      {
+        "name": "Pitch",
+        "parameters": [
+          "Transpose",
+          "Spread",
+          "Ve A Slope",
+          "Ve Decay",
+          "Ve Peak",
+          "Ve D Slope",
+          "Ve Sustain",
+          "Ve Release"
+        ]
+      }
+    ],
+    "category": "instruments",
+    "display_name": "Sampler"
+  },
+  "MultibandDynamics": {
+    "banks": [
+      {
+        "name": "Main",
+        "parameters": [
+          "Above Threshold (Low)",
+          "Above Ratio (Low)",
+          "Above Threshold (Mid)",
+          "Above Ratio (Mid)",
+          "Above Threshold (High)",
+          "Above Ratio (High)",
+          "Output",
+          "Amount"
+        ]
+      },
+      {
+        "name": "Low Band",
+        "parameters": [
+          "Band Activator (Low)",
+          "Input Gain (Low)",
+          "Below Threshold (Low)",
+          "Below Ratio (Low)",
+          "Above Threshold (Low)",
+          "Above Ratio (Low)",
+          "Attack Time (Low)",
+          "Release Time (Low)"
+        ]
+      },
+      {
+        "name": "Mid Band",
+        "parameters": [
+          "Band Activator (Mid)",
+          "Input Gain (Mid)",
+          "Below Threshold (Mid)",
+          "Below Ratio (Mid)",
+          "Above Threshold (Mid)",
+          "Above Ratio (Mid)",
+          "Attack Time (Mid)",
+          "Release Time (Mid)"
+        ]
+      },
+      {
+        "name": "High Band",
+        "parameters": [
+          "Band Activator (High)",
+          "Input Gain (High)",
+          "Below Threshold (High)",
+          "Below Ratio (High)",
+          "Above Threshold (High)",
+          "Above Ratio (High)",
+          "Attack Time (High)",
+          "Release Time (High)"
+        ]
+      },
+      {
+        "name": "Mix & Split",
+        "parameters": [
+          "Output Gain (Low)",
+          "Low-Mid Crossover",
+          "Output Gain (Mid)",
+          "Mid-High Crossover",
+          "Output Gain (High)",
+          "Peak/RMS Mode",
+          "Amount",
+          "Output"
+        ]
+      },
+      {
+        "name": "Sidechain",
+        "parameters": [
+          "S/C On",
+          "S/C Mix",
+          "S/C Gain",
+          null,
+          "Time Scaling",
+          "Soft Knee On/Off",
+          null,
+          null
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Multiband Dynamics"
+  },
+  "Operator": {
+    "banks": [
+      {
+        "name": "Osc Edit",
+        "parameters": [
+          {
+            "selector": "Osc",
+            "values": ["A", "B", "C", "D"],
+            "template": ["Osc-{} On", "Osc-{} Wave", "{} Coarse", "{} Fine", "Osc-{} Level", "Osc-{} Feedb", "Osc-{} Phase"],
+            "display": ["On", "Wave", "Coarse", "Fine", "Level", "Feedb", "Phase"]
+          },
+          null, null, null, null, null, null, null
+        ]
+      },
+      {
+        "name": "Osc Env",
+        "parameters": [
+          {
+            "selector": "Osc",
+            "values": ["A", "B", "C", "D"],
+            "template": ["{}e Attack", "{}e Decay", "{}e Peak", "{}e Sustain", "{}e Release", "{}e Mode", "{}e Init"],
+            "display": ["Attack", "Decay", "Peak", "Sustain", "Release", "Mode", "Init"]
+          },
+          null, null, null, null, null, null, null
+        ]
+      },
+      {
+        "name": "Osc Mod",
+        "parameters": [
+          {
+            "selector": "Osc",
+            "values": ["A", "B", "C", "D"],
+            "template": ["Osc-{} Lev < Vel", "Osc-{} Lev < Key", "Osc-{} < Pe", "Osc-{} < LFO", "{} Freq<Vel", "{} Fix On ", "{} Fix Freq"],
+            "display": ["Lv<Vel", "Lv<Key", "<Pe", "<LFO", "Fr<Vel", "FixOn", "FixFrq"]
+          },
+          null, null, null, null, null, null, null
+        ]
+      },
+      {
+        "name": "Global",
+        "parameters": [
+          "Algorithm",
+          "Tone",
+          "Volume",
+          "Time",
+          "Transpose",
+          "Glide Time",
+          "Spread",
+          "Panorama"
+        ]
+      },
+      {
+        "name": "LFO",
+        "parameters": [
+          "LFO Type",
+          {
+            "watch": "LFO Range",
+            "map": {
+              "Low": "LFO Rate",
+              "Hi": "LFO Rate",
+              "Sync": "LFO Sync"
+            }
+          },
+          "LFO Range",
+          "LFO Amt",
+          "LFO R < K",
+          "Le Attack",
+          "Le Decay",
+          "Le Sustain"
+        ]
+      },
+      {
+        "name": "Filter",
+        "parameters": [
+          "Filter On",
+          "Filter Type",
+          "Filter Freq",
+          "Filter Res",
+          {
+            "watch": "Filter Type",
+            "map": {
+              "Lowpass": {"name": "Filter Circuit - LP/HP", "display": "Circuit"},
+              "Highpass": {"name": "Filter Circuit - LP/HP", "display": "Circuit"},
+              "Bandpass": {"name": "Filter Circuit - BP/NO/Morph", "display": "Circuit"},
+              "Notch": {"name": "Filter Circuit - BP/NO/Morph", "display": "Circuit"},
+              "Morph": {"name": "Filter Circuit - BP/NO/Morph", "display": "Circuit"}
+            }
+          },
+          "Filter Slope",
+          "Filter Morph",
+          "Filt < Vel"
+        ]
+      },
+      {
+        "name": "Filter Env",
+        "parameters": [
+          "Fe Attack",
+          "Fe Decay",
+          "Fe Sustain",
+          "Fe Release",
+          "Fe Init",
+          "Fe Peak",
+          "Fe Amount",
+          "Fe R < Vel"
+        ]
+      },
+      {
+        "name": "Pitch Env",
+        "parameters": [
+          "Pe Attack",
+          "Pe Decay",
+          "Pe Sustain",
+          "Pe Release",
+          "Pe Init",
+          "Pe Peak",
+          "Pe Amount",
+          "Spread"
+        ]
+      },
+      {
+        "name": "Routing",
+        "parameters": [
+          "Algorithm",
+          "Time",
+          "Time < Key",
+          "Tone",
+          "Pan < Key",
+          "Pan < Rnd",
+          "Panorama",
+          "Volume"
+        ]
+      }
+    ],
+    "category": "instruments",
+    "display_name": "Operator"
+  },
+  "OriginalSimpler": {
+    "banks": [
+      {
+        "name": "Main",
+        "parameters": [
+          "Filter Freq",
+          "Filter Res",
+          "S Start",
+          "S Length",
+          "Ve Attack",
+          "Ve Release",
+          "Transpose",
+          "Volume"
+        ]
+      },
+      {
+        "name": "Amplitude",
+        "parameters": [
+          "Ve Attack",
+          "Ve Decay",
+          "Ve Sustain",
+          "Ve Release",
+          "S Start",
+          "S Loop Length",
+          "S Length",
+          "S Loop Fade"
+        ]
+      },
+      {
+        "name": "Filter",
+        "parameters": [
+          "Fe Attack",
+          "Fe Decay",
+          "Fe Sustain",
+          "Fe Release",
+          "Filter Freq",
+          "Filter Res",
+          "Filt < Vel",
+          "Fe < Env"
+        ]
+      },
+      {
+        "name": "LFO",
+        "parameters": [
+          "L Attack",
+          "L Sync Rate",
+          "L R < Key",
+          "L Wave",
+          "Vol < LFO",
+          "Filt < LFO",
+          "Pitch < LFO",
+          "Pan < LFO"
+        ]
+      },
+      {
+        "name": "Pitch Modifiers",
+        "parameters": [
+          "Pe Attack",
+          "Pe Decay",
+          "Pe Sustain",
+          "Pe Release",
+          "Glide Time",
+          "Spread",
+          "Pan",
+          "Volume"
+        ]
+      }
+    ],
+    "category": "instruments",
+    "display_name": "Simpler"
+  },
+  "Overdrive": {
+    "banks": [
+      {
+        "name": "Bank 1",
+        "parameters": [
+          "Filter Freq",
+          "Filter Width",
+          "Drive",
+          "Dry/Wet",
+          "Tone",
+          "Preserve Dynamics",
+          null,
+          null
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Overdrive"
+  },
+  "Pedal": {
+    "banks": [
+      {
+        "name": "Global",
+        "parameters": [
+          "Type",
+          "Drive",
+          "Output",
+          "Bass",
+          "Mid",
+          "Treble",
+          "Sub",
+          "Dry/Wet"
+        ]
+      },
+      {
+        "name": "EQ",
+        "parameters": [
+          null,
+          null,
+          null,
+          "Bass",
+          "Mid",
+          "Treble",
+          null,
+          "Mid Freq"
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Pedal"
+  },
+  "PhaserNew": {
+    "banks": [
+      {
+        "name": "Main",
+        "parameters": [
+          "Mode",
+          "Mod Freq",
+          "Amount",
+          "Feedback",
+          "Notches",
+          "Warmth",
+          "Output",
+          "Dry/Wet"
+        ]
+      },
+      {
+        "name": "Details",
+        "parameters": [
+          "Mode",
+          "Mod Freq",
+          "Amount",
+          "Feedback",
+          "Notches",
+          "FB Invert",
+          "Output",
+          "Dry/Wet"
+        ]
+      },
+      {
+        "name": "LFO2",
+        "parameters": [
+          "Lfo Blend",
+          "Mod Wave",
+          "Duty Cycle",
+          "Spin Enabled",
+          "Mod Phase",
+          "Mod Sync 2",
+          "Mod Freq 2",
+          "Dry/Wet"
+        ]
+      },
+      {
+        "name": "LFO2 Env",
+        "parameters": [
+          "Lfo Blend",
+          "Env Enabled",
+          "Env Amount",
+          "Env Attack",
+          "Env Release",
+          "Safe Freq",
+          "Output",
+          "Dry/Wet"
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Phaser-Flanger"
+  },
+  "ProxyAudioEffectDevice": {
+    "banks": [
+      {
+        "name": "Bank 1",
+        "parameters": [
+          "Dry/Wet",
+          "Output Gain",
+          "Input Gain",
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "External Audio Effect"
+  },
+  "ProxyInstrumentDevice": {
+    "banks": [
+      {
+        "name": "Bank 1",
+        "parameters": [
+          "Input Gain",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      }
+    ],
+    "category": "instruments",
+    "display_name": "External Instrument"
+  },
+  "Redux2": {
+    "banks": [
+      {
+        "name": "Bank 1",
+        "parameters": [
+          "Sample Rate",
+          "Jitter",
+          "Bit Depth",
+          "Quantizer Shape",
+          "DC Shift",
+          "Pre-Filter On",
+          "Post-Filter On",
+          "Post-Filter"
+        ]
+      },
+      {
+        "name": "Bank 2",
+        "parameters": [
+          "Dry/Wet",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Redux"
+  },
+  "Resonator": {
+    "banks": [
+      {
+        "name": "Main",
+        "parameters": [
+          "Frequency",
+          "Decay",
+          "Color",
+          "I Gain",
+          "II Gain",
+          "III Gain",
+          "Width",
+          "Dry/Wet"
+        ]
+      },
+      {
+        "name": "Global",
+        "parameters": [
+          "Mode",
+          "Decay",
+          "Const",
+          "Color",
+          null,
+          "Width",
+          "Output",
+          "Dry/Wet"
+        ]
+      },
+      {
+        "name": "Filter",
+        "parameters": [
+          "Filter On",
+          "Frequency",
+          "Filter Type",
+          "Filter On",
+          "Frequency",
+          "Filter Type",
+          "Mode",
+          "Decay"
+        ]
+      },
+      {
+        "name": "Mode I & II",
+        "parameters": [
+          "I On",
+          "I Note",
+          "I Tune",
+          "I Gain",
+          "II On",
+          "II Pitch",
+          "II Tune",
+          "II Gain"
+        ]
+      },
+      {
+        "name": "Mode III & IV",
+        "parameters": [
+          "III On",
+          "III Pitch",
+          "III Tune",
+          "III Gain",
+          "IV On",
+          "IV Pitch",
+          "IV Tune",
+          "IV Gain"
+        ]
+      },
+      {
+        "name": "Mode V",
+        "parameters": [
+          "V On",
+          "V Pitch",
+          "V Tune",
+          "V Gain",
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      {
+        "name": "Mix",
+        "parameters": [
+          "I Gain",
+          "II Gain",
+          "III Gain",
+          "IV Gain",
+          "V Gain",
+          null,
+          null,
+          null
+        ]
+      },
+      {
+        "name": "Pitch",
+        "parameters": [
+          "I Note",
+          "II Pitch",
+          "III Pitch",
+          "IV Pitch",
+          "V Pitch",
+          null,
+          null,
+          null
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Resonators"
+  },
+  "Reverb": {
+    "banks": [
+      {
+        "name": "Main",
+        "parameters": [
+          "Predelay",
+          "Input Freq",
+          "Chorus Amount",
+          "Stereo Image",
+          "Room Size",
+          "Decay Time",
+          "Diffuse Level",
+          "Dry/Wet"
+        ]
+      },
+      {
+        "name": "Global",
+        "parameters": [
+          "Chorus On",
+          "Chorus Rate",
+          "Chorus Amount",
+          "Density",
+          "Freeze On",
+          "Flat On",
+          "Reflect Level",
+          "Diffuse Level"
+        ]
+      },
+      {
+        "name": "Diffusion Network",
+        "parameters": [
+          "Diff. Hi On",
+          "Diff. Hi Freq",
+          "HiShelf Gain",
+          "Diff. Lo On",
+          "Diff. Lo Freq",
+          "LowShelf Gain",
+          "Diffusion",
+          "Scale"
+        ]
+      },
+      {
+        "name": "Input/Reflections",
+        "parameters": [
+          "In Lo Cut On",
+          "In Hi Cut On",
+          "Input Freq",
+          "Input Width",
+          "ER Spin On",
+          "ER Spin Rate",
+          "ER Spin Amount",
+          "ER Shape"
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Reverb"
+  },
+  "Roar": {
+    "banks": [
+      {
+        "name": "Bank 1",
+        "parameters": [
+          "Drive",
+          "Tone Amt",
+          "Tone Freq",
+          "Color On",
+          "Blend",
+          "Low Mid X-Over",
+          "Mid High X-Over",
+          "Stage 1 On"
+        ]
+      },
+      {
+        "name": "Bank 2",
+        "parameters": [
+          "Shaper 1 On",
+          "Shaper 1 Type",
+          "Shaper 1 Amt",
+          "Shaper 1 Bias",
+          "Shaper 1 Level",
+          "Flt 1 On",
+          "Flt 1 Type",
+          "Flt 1 Freq"
+        ]
+      },
+      {
+        "name": "Bank 3",
+        "parameters": [
+          "Flt 1 Res",
+          "Flt 1 Morph",
+          "Flt 1 Peak",
+          "Flt 1 Pre On",
+          "Stage 2 On",
+          "Shaper 2 On",
+          "Shaper 2 Type",
+          "Shaper 2 Amt"
+        ]
+      },
+      {
+        "name": "Bank 4",
+        "parameters": [
+          "Shaper 2 Bias",
+          "Shaper 2 Level",
+          "Flt 2 On",
+          "Flt 2 Type",
+          "Flt 2 Freq",
+          "Flt 2 Res",
+          "Flt 2 Morph",
+          "Flt 2 Peak"
+        ]
+      },
+      {
+        "name": "Bank 5",
+        "parameters": [
+          "Flt 2 Pre On",
+          "Stage 3 On",
+          "Shaper 3 On",
+          "Shaper 3 Type",
+          "Shaper 3 Amt",
+          "Shaper 3 Bias",
+          "Shaper 3 Level",
+          "Flt 3 On"
+        ]
+      },
+      {
+        "name": "Bank 6",
+        "parameters": [
+          "Flt 3 Type",
+          "Flt 3 Freq",
+          "Flt 3 Res",
+          "Flt 3 Morph",
+          "Flt 3 Peak",
+          "Flt 3 Pre On",
+          "Feedback",
+          "FB Time Mode"
+        ]
+      },
+      {
+        "name": "Bank 7",
+        "parameters": [
+          "FB Time",
+          "FB Synced",
+          "FB Note",
+          "FB Freq",
+          "FB Width",
+          "FB Invert",
+          "Fb Gate On",
+          "LFO 1 Rate Mode"
+        ]
+      },
+      {
+        "name": "Bank 8",
+        "parameters": [
+          "LFO 1 Rate",
+          "LFO 1 Synced Rate",
+          "LFO 1 16th",
+          "LFO 1 Wave",
+          "LFO 1 Morph",
+          "LFO 1 Smooth",
+          "LFO 2 Rate Mode",
+          "LFO 2 Rate"
+        ]
+      },
+      {
+        "name": "Bank 9",
+        "parameters": [
+          "LFO 2 Synced Rate",
+          "LFO 2 16th",
+          "LFO 2 Wave",
+          "LFO 2 Morph",
+          "LFO 2 Smooth",
+          "Env Gain",
+          "Env Attack",
+          "Env Hold On"
+        ]
+      },
+      {
+        "name": "Bank 10",
+        "parameters": [
+          "Env Release",
+          "Env Thresh",
+          "Env Freq",
+          "Env Width",
+          "Noise Rate Mode",
+          "Noise Rate",
+          "Noise Synced Rate",
+          "Noise 16th"
+        ]
+      },
+      {
+        "name": "Bank 11",
+        "parameters": [
+          "Noise Type",
+          "Noise Smooth",
+          "Global Mod Amt",
+          "Comp Amt",
+          "Comp Hp On",
+          "Output",
+          "Dry/Wet",
+          "S/C On"
+        ]
+      },
+      {
+        "name": "Bank 12",
+        "parameters": [
+          "S/C Gain",
+          "S/C Mix",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Roar"
+  },
+  "Saturator": {
+    "banks": [
+      {
+        "name": "Main",
+        "parameters": [
+          "Drive",
+          "Type",
+          "Color On",
+          "Color Amt Low",
+          "Color Freq",
+          "Color Width",
+          "Color Amt Hi",
+          "Output"
+        ]
+      },
+      {
+        "name": "Waveshaper",
+        "parameters": [
+          "Type",
+          "WS Drive",
+          "WS Curve",
+          "WS Depth",
+          "WS Linearity",
+          "WS Damp",
+          "WS Period",
+          "Dry/Wet"
+        ]
+      },
+      {
+        "name": "Output",
+        "parameters": [
+          "Drive",
+          "Pre Dc Filter",
+          "Type",
+          "Color On",
+          "Color Amt Low",
+          "Post Clip Mode",
+          "Output",
+          "Dry/Wet"
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Saturator"
+  },
+  "Shifter": {
+    "banks": [
+      {
+        "name": "Bank 1",
+        "parameters": [
+          "Lfo Amount Hz",
+          "Lfo Amount St",
+          "Lfo Waveform",
+          "Lfo Sync",
+          "Lfo Rate Hz",
+          "Lfo S. Rate",
+          "Lfo Spin",
+          "Lfo Phase"
+        ]
+      },
+      {
+        "name": "Bank 2",
+        "parameters": [
+          "Lfo Spin Amount",
+          "Lfo Offset",
+          "Lfo Width",
+          "Lfo Duty Cycle",
+          "Pitch Coarse",
+          "Pitch Fine",
+          "Pitch Window",
+          "Mod Fine"
+        ]
+      },
+      {
+        "name": "Bank 3",
+        "parameters": [
+          "FShift Coarse",
+          "RM Coarse",
+          "RM Drive",
+          "RM Drive Gain",
+          "MidiPitch Glide",
+          "Env On",
+          "Env Attack",
+          "Env Release"
+        ]
+      },
+      {
+        "name": "Bank 4",
+        "parameters": [
+          "Env Amount Hz",
+          "Env Amount St",
+          "Delay On",
+          "Delay Sync",
+          "Delay Time",
+          "Delay Synced",
+          "Delay Feedback",
+          "Mode"
+        ]
+      },
+      {
+        "name": "Bank 5",
+        "parameters": [
+          "Tone",
+          "Wide",
+          "Dry/Wet",
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Shifter"
+  },
+  "Spectral": {
+    "banks": [
+      {
+        "name": "Bank 1",
+        "parameters": [
+          "On",
+          "Frozen",
+          "Unit",
+          "Sync Interval",
+          "S.Rate ms",
+          "Mode",
+          "Retrigger Mode",
+          "Fade Type"
+        ]
+      },
+      {
+        "name": "Bank 2",
+        "parameters": [
+          "Fade In",
+          "XFade %",
+          "Fade Out",
+          "Sensitivity",
+          "Delay On",
+          "Delay Time",
+          "Delay Mode",
+          "Delay 16th"
+        ]
+      },
+      {
+        "name": "Bank 3",
+        "parameters": [
+          "Delay Synced",
+          "Delay Feedback",
+          "Delay Tilt",
+          "Delay Spray",
+          "Delay Mask",
+          "Delay Stereo Spread",
+          "Delay Frequency Shift",
+          "Delay Mix"
+        ]
+      },
+      {
+        "name": "Bank 4",
+        "parameters": [
+          "Send Gain",
+          "Dry Wet",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Spectral Time"
+  },
+  "SpectrumAnalyzer": {
+    "category": "audio_effects",
+    "display_name": "Spectrum"
+  },
+  "StereoGain": {
+    "banks": [
+      {
+        "name": "Utility",
+        "parameters": [
+          "Left Inv",
+          "Right Inv",
+          "Channel Mode",
+          null,
+          "Mono",
+          "Balance",
+          null,
+          "Mute"
+        ]
+      },
+      {
+        "name": "Low Freq",
+        "parameters": [
+          "Bass Mono",
+          "Bass Freq",
+          "Left Inv",
+          "DC Filter",
+          "Right Inv",
+          "Channel Mode",
+          "Stereo Width",
+          "Mono"
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Utility"
+  },
+  "StringStudio": {
+    "banks": [
+      {
+        "name": "Main",
+        "parameters": [
+          "Filter Freq",
+          "Filter Reso",
+          "Filter Type",
+          "Exciter Type",
+          "E Pos",
+          "String Decay",
+          "Str Damping",
+          "Volume"
+        ]
+      },
+      {
+        "name": "Exciter and String",
+        "parameters": [
+          "Exciter Type",
+          "String Decay",
+          "Str Inharmon",
+          "Str Damping",
+          "Exc Protrusion",
+          "Exc Stiffness",
+          "Exc Velocity",
+          "E Pos"
+        ]
+      },
+      {
+        "name": "Damper",
+        "parameters": [
+          "Damper On",
+          "Damper Mass",
+          "D Stiffness",
+          "D Velocity",
+          "Damp Pos",
+          "D Damping",
+          "D Pos < Vel",
+          "D Pos Abs"
+        ]
+      },
+      {
+        "name": "Termination and Pickup",
+        "parameters": [
+          "Term On/Off",
+          "Term Mass",
+          "Term Fng Stiff",
+          "Term Fret Stiff",
+          "Pickup On/Off",
+          "Pickup Pos",
+          "T Mass < Vel",
+          "T Mass < Key"
+        ]
+      },
+      {
+        "name": "Body",
+        "parameters": [
+          "Body On/Off",
+          "Body Type",
+          "Body Size",
+          "Body Decay",
+          "Body Low-Cut",
+          "Body High-Cut",
+          "Body Mix",
+          "Volume"
+        ]
+      },
+      {
+        "name": "Vibrato",
+        "parameters": [
+          "Vibrato On/Off",
+          "Vib Delay",
+          "Vib Fade-In",
+          "Vib Speed",
+          "Vib Amount",
+          "Vib < ModWh",
+          "Vib Error",
+          "Volume"
+        ]
+      },
+      {
+        "name": "Filter",
+        "parameters": [
+          "Filter On/Off",
+          "Filter Type",
+          "Filter Freq",
+          "Filter Reso",
+          "Freq < Env",
+          "Freq < LFO",
+          "Reso < Env",
+          "Reso < LFO"
+        ]
+      },
+      {
+        "name": "Envelope and LFO",
+        "parameters": [
+          "FEG On/Off",
+          "FEG Attack",
+          "FEG Decay",
+          "FEG Sustain",
+          "FEG Release",
+          "LFO On/Off",
+          "LFO Shape",
+          "LFO Speed"
+        ]
+      },
+      {
+        "name": "Global",
+        "parameters": [
+          "Unison On/Off",
+          "Uni Detune",
+          "Porta On/Off",
+          "Porta Time",
+          "Voices",
+          "Octave",
+          "Semitone",
+          "Volume"
+        ]
+      }
+    ],
+    "category": "instruments",
+    "display_name": "Tension"
+  },
+  "Transmute": {
+    "banks": [
+      {
+        "name": "Bank 1",
+        "parameters": [
+          "Transpose",
+          "Transp Scale",
+          "Glide",
+          "Freq. Hz",
+          "Note",
+          "Shift",
+          "Stretch",
+          "Quantize"
+        ]
+      },
+      {
+        "name": "Bank 2",
+        "parameters": [
+          "Decay",
+          "High Damp",
+          "Low Damp",
+          "Mod Rate",
+          "Pitch Mod",
+          "Harmonics",
+          "Unison",
+          "Unison Amount"
+        ]
+      },
+      {
+        "name": "Bank 3",
+        "parameters": [
+          "Send Gain",
+          "Dry Wet",
+          "Use Scale",
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Spectral Resonator"
+  },
+  "Tube": {
+    "banks": [
+      {
+        "name": "Character",
+        "parameters": [
+          "Drive",
+          "Tube Type",
+          "Bias",
+          "Tone",
+          "Attack",
+          "Release",
+          "Envelope",
+          "Dry/Wet"
+        ]
+      },
+      {
+        "name": "Output",
+        "parameters": [
+          "Dry/Wet",
+          "Drive",
+          "Output",
+          "Bias",
+          "Envelope",
+          "Attack",
+          "Output",
+          "Dry/Wet"
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Dynamic Tube"
+  },
+  "Tuner": {
+    "category": "audio_effects",
+    "display_name": "Tuner"
+  },
+  "UltraAnalog": {
+    "banks": [
+      {
+        "name": "Main",
+        "parameters": [
+          "F1 Freq",
+          "F1 Resonance",
+          "OSC1 Shape",
+          "OSC1 Octave",
+          "OSC2 Shape",
+          "OSC2 Octave",
+          "OSC2 Detune",
+          "Volume"
+        ]
+      },
+      {
+        "name": "Oscillators",
+        "parameters": [
+          "OSC1 Level",
+          "OSC1 Octave",
+          "OSC1 Semi",
+          "OSC1 Shape",
+          "OSC2 Level",
+          "OSC2 Octave",
+          "OSC2 Semi",
+          "OSC2 Shape"
+        ]
+      },
+      {
+        "name": "Filters",
+        "parameters": [
+          "OSC1 Balance",
+          "F1 Freq",
+          "F1 Resonance",
+          "F1 Type",
+          "OSC2 Balance",
+          "F2 Freq",
+          "F2 Resonance",
+          "F2 Type"
+        ]
+      },
+      {
+        "name": "Filter Envelopes",
+        "parameters": [
+          "FEG1 Attack",
+          "FEG1 Decay",
+          "FEG1 Sustain",
+          "FEG1 Rel",
+          "FEG2 Attack",
+          "FEG2 Decay",
+          "FEG2 Sustain",
+          "FEG2 Rel"
+        ]
+      },
+      {
+        "name": "Filter Modulation",
+        "parameters": [
+          "F1 On/Off",
+          "F1 Freq < LFO",
+          "F1 Freq < Env",
+          "F1 Res < LFO",
+          "F2 On/Off",
+          "F2 Freq < LFO",
+          "F2 Freq < Env",
+          "F2 Res < LFO"
+        ]
+      },
+      {
+        "name": "Volume Envelopes",
+        "parameters": [
+          "AEG1 Attack",
+          "AEG1 Decay",
+          "AEG1 Sustain",
+          "AEG1 Rel",
+          "AEG2 Attack",
+          "AEG2 Decay",
+          "AEG2 Sustain",
+          "AEG2 Rel"
+        ]
+      },
+      {
+        "name": "Mix",
+        "parameters": [
+          "AMP1 Level",
+          "AMP1 Pan",
+          "LFO1 Shape",
+          "LFO1 SncRate",
+          "AMP2 Level",
+          "AMP2 Pan",
+          "LFO2 Shape",
+          "LFO2 SncRate"
+        ]
+      },
+      {
+        "name": "Output",
+        "parameters": [
+          "Volume",
+          "Noise On/Off",
+          "Noise Level",
+          "Noise Color",
+          "Unison On/Off",
+          "Unison Detune",
+          "Vib On/Off",
+          "Vib Amount"
+        ]
+      }
+    ],
+    "category": "instruments",
+    "display_name": "Analog"
+  },
+  "Vinyl": {
+    "banks": [
+      {
+        "name": "Global",
+        "parameters": [
+          "Tracing On",
+          "Tracing Drive",
+          "Tracing Freq.",
+          "Tracing Width",
+          "Pinch On",
+          "Global Drive",
+          "Crackle Density",
+          "Crackle Volume"
+        ]
+      },
+      {
+        "name": "Pinch",
+        "parameters": [
+          "Pinch On",
+          "Pinch Soft On",
+          "Pinch Mono On",
+          "Pinch Width",
+          "Pinch Drive",
+          "Pinch Freq.",
+          "Crackle Density",
+          "Crackle Volume"
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Vinyl Distortion"
+  },
+  "Vocoder": {
+    "banks": [
+      {
+        "name": "Main",
+        "parameters": [
+          "Formant Shift",
+          "Attack Time",
+          "Release Time",
+          "Unvoiced Level",
+          "Gate Threshold",
+          "Filter Width",
+          "Envelope Depth",
+          "Dry/Wet"
+        ]
+      },
+      {
+        "name": "Carrier",
+        "parameters": [
+          "Noise Rate",
+          "Noise Crackle",
+          "Upper Pitch Detection",
+          "Lower Pitch Detection",
+          "Oscillator Pitch",
+          "Oscillator Waveform",
+          null,
+          null
+        ]
+      },
+      {
+        "name": "Global",
+        "parameters": [
+          "Formant Shift",
+          "Attack Time",
+          "Release Time",
+          "Mono/Stereo",
+          "Output",
+          "Gate Threshold",
+          "Envelope Depth",
+          "Dry/Wet"
+        ]
+      },
+      {
+        "name": "Filters/Voicing",
+        "parameters": [
+          "Filter Width",
+          "Upper Filter Band",
+          "Lower Filter Band",
+          "Precise/Retro",
+          "Unvoiced Level",
+          "Unvoiced Sensitivity",
+          "Unvoiced Speed",
+          "Enhance"
+        ]
+      }
+    ],
+    "category": "audio_effects",
+    "display_name": "Vocoder"
+  }
+}

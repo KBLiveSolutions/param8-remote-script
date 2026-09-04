@@ -6,41 +6,18 @@
 # Size of source mod 2**32: 6020 bytes
 from __future__ import absolute_import, print_function, unicode_literals
 import json, os
-from future.moves.itertools import zip_longest
-from _Generic.Devices import best_of_parameter_bank, parameter_banks, DEVICE_DICT
-from ableton.v2.control_surface.banking_util import BANK_PARAMETERS_KEY
+from _Generic.Devices import DEVICE_DICT
 
-def _resolve_bank_definitions(device, banking_info):
-    definition = banking_info.device_bank_definition(device)
-    if not definition:
+def _auto_banks(device):
+    params = list(device.parameters[1:])
+    if not params:
         return None
-    all_params = {p.name: p for p in device.parameters[1:]}
-    for p in device.parameters[1:]:
-        if hasattr(p, 'original_name') and p.original_name not in all_params:
-            all_params[p.original_name] = p
     banks = []
-    for bank_name, bank_data in definition.items():
-        param_names = bank_data.get(BANK_PARAMETERS_KEY, ())
-        bank = []
-        for pname in param_names:
-            if hasattr(pname, '_default_parameter_name'):
-                pname = pname._default_parameter_name
-            param = all_params.get(pname) if isinstance(pname, str) and pname else None
-            bank.append(param)
+    for i in range(0, len(params), 8):
+        bank = params[i:i+8]
         while len(bank) < 8:
             bank.append(None)
-        banks.append(bank[:8])
-    has_any = any(p for b in banks for p in b)
-    if not has_any:
-        return None
-    used = set(id(p) for b in banks for p in b if p is not None)
-    spare = [p for p in device.parameters[1:] if id(p) not in used]
-    for bi, bank in enumerate(banks):
-        none_count = sum(1 for p in bank if p is None)
-        if none_count > 4:
-            for si in range(8):
-                if bank[si] is None and spare:
-                    bank[si] = spare.pop(0)
+        banks.append(bank)
     return banks
 
 _MAPPINGS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "mappings.json")
@@ -73,22 +50,111 @@ def reload_display_names():
     global _display_names_cache
     _display_names_cache = None
 
+def _resolve_selector_slots(bank, sel, custom_display):
+    values = sel["values"]
+    idx = sel["index"]
+    val = values[idx] if idx < len(values) else ""
+    param_by_name = sel["param_by_name"]
+    base_slot = sel["base_slot"]
+    for t_offset, tmpl in enumerate(sel["template"]):
+        t_slot = base_slot + 1 + t_offset
+        if t_slot < 8:
+            pname = tmpl.format(val)
+            bank[t_slot] = param_by_name.get(pname)
+            if sel.get("display"):
+                dtmpl = sel["display"]
+                if t_offset < len(dtmpl):
+                    custom_display[pname] = dtmpl[t_offset].format(val) if "{}" in dtmpl[t_offset] else dtmpl[t_offset]
+
 def _resolve_custom_banks(device, mapping_entry):
     param_by_name = {}
     for p in device.parameters:
         param_by_name[p.name] = p
     banks = []
-    for bank_def in mapping_entry.get("banks", []):
+    custom_display = {}
+    conditionals = {}
+    selectors = {}
+    for bank_idx, bank_def in enumerate(mapping_entry.get("banks", [])):
         bank = []
-        for name in bank_def.get("parameters", [])[:8]:
-            if name:
-                bank.append(param_by_name.get(name))
+        skip_until = -1
+        for slot_idx, slot in enumerate(bank_def.get("parameters", [])[:8]):
+            if slot_idx < skip_until:
+                continue
+            if isinstance(slot, dict):
+                if "selector" in slot:
+                    values = slot.get("values", [])
+                    template = slot.get("template", [])
+                    view_prop = slot.get("view_property")
+                    dev_prop = slot.get("device_property")
+                    init_idx = 0
+                    if view_prop and hasattr(device, 'view') and hasattr(device.view, view_prop):
+                        init_idx = getattr(device.view, view_prop, 0)
+                    elif dev_prop and hasattr(device, dev_prop):
+                        init_idx = int(getattr(device, dev_prop, 0))
+                    sel = {
+                        "name": slot["selector"],
+                        "values": values,
+                        "template": template,
+                        "display": slot.get("display"),
+                        "index": init_idx,
+                        "param_by_name": param_by_name,
+                        "base_slot": slot_idx,
+                        "view_property": view_prop,
+                        "device_property": dev_prop,
+                    }
+                    selectors[(bank_idx, slot_idx)] = sel
+                    bank.append(None)
+                    for t_offset in range(len(template)):
+                        bank.append(None)
+                    skip_until = slot_idx + 1 + len(template)
+                    _resolve_selector_slots(bank, sel, custom_display)
+                    continue
+                elif "watch" in slot:
+                    watch_param = param_by_name.get(slot["watch"])
+                    if watch_param:
+                        resolved_map = {}
+                        resolved_names = {}
+                        resolved_displays = {}
+                        for v, pn in slot["map"].items():
+                            if isinstance(pn, dict):
+                                pname = pn.get("name", "")
+                                resolved_map[v] = param_by_name.get(pname)
+                                resolved_names[v] = pname
+                                if pn.get("display"):
+                                    resolved_displays[v] = pn["display"]
+                            elif pn:
+                                resolved_map[v] = param_by_name.get(pn)
+                                resolved_names[v] = pn
+                        cond = {
+                            "watch": watch_param,
+                            "map": resolved_map,
+                            "map_names": resolved_names,
+                            "map_displays": resolved_displays,
+                            "display": slot.get("display"),
+                        }
+                        conditionals[(bank_idx, slot_idx)] = cond
+                        current_val = str(watch_param)
+                        mapped_name = resolved_names.get(current_val) or resolved_names.get("*", "")
+                        bank.append(param_by_name.get(mapped_name) if mapped_name else None)
+                        disp = resolved_displays.get(current_val) or resolved_displays.get("*")
+                        if disp and mapped_name:
+                            custom_display[mapped_name] = disp
+                    else:
+                        bank.append(None)
+                else:
+                    name = slot.get("name", "")
+                    disp = slot.get("display", "")
+                    if name and disp:
+                        custom_display[name] = disp
+                    bank.append(param_by_name.get(name) if name else None)
+            elif slot:
+                bank.append(param_by_name.get(slot))
             else:
                 bank.append(None)
         while len(bank) < 8:
             bank.append(None)
         banks.append(bank)
-    return banks if banks else None
+    return banks if banks else None, custom_display, conditionals, selectors
 from ableton.v2.base import EventObject, clamp, depends, listens, liveobj_valid, nop, listens_group
 from ableton.v2.control_surface import Component
 from ableton.v2.control_surface.control import ToggleButtonControl, control_list, ButtonControl
@@ -114,8 +180,8 @@ class SimpleDeviceParameterComponent(Component):
     prev_device_button = ButtonControl()
     next_bank_button = ButtonControl()
     prev_bank_button = ButtonControl()
-    Compare = ToggleButtonControl()
-    Hotswap = ToggleButtonControl()
+    Compare = ToggleButtonControl(toggled_color='Mixer.ArmOn', untoggled_color='Mixer.ArmOff')
+    DeviceOn = ToggleButtonControl(toggled_color='Mixer.ArmOn', untoggled_color='Mixer.ArmOff')
 
     @next_bank_button.pressed
     def bank_up_button_pressed(self, button):
@@ -139,10 +205,28 @@ class SimpleDeviceParameterComponent(Component):
             self._device.is_using_compare_preset_b = 1 if is_toggled else 0
         print(f"Compare Mode: {is_toggled}")
     
-    @Hotswap.toggled
-    def hotswap_toggled(self, is_toggled, button):
-        self.song.view.browse_mode = is_toggled
-        print(f"Hotswap Mode: {is_toggled}")
+    @DeviceOn.toggled
+    def device_on_toggled(self, is_toggled, button):
+        if liveobj_valid(self._device):
+            for p in self._device.parameters:
+                if p.name == 'Device On':
+                    p.value = 1.0 if is_toggled else 0.0
+                    break
+            print(f"Device On: {is_toggled}")
+
+    @listens('value')
+    def _on_device_on_changed(self):
+        if self.device_control_enabled and self._device_on_param and liveobj_valid(self._device_on_param):
+            is_on = self._device_on_param.value > 0.5
+            self.DeviceOn.is_toggled = is_on
+            print(f"Device On changed: {is_on}")
+
+    @listens('is_using_compare_preset_b')
+    def _on_compare_changed(self):
+        if self.device_control_enabled and liveobj_valid(self._device):
+            is_b = self._device.is_using_compare_preset_b
+            self.Compare.is_toggled = is_b
+            print(f"Compare changed: {is_b}")
 
     def select_bank(self, factor):
         new_index = self._clamp_to_bank_size(self._bank_index + factor)
@@ -150,7 +234,7 @@ class SimpleDeviceParameterComponent(Component):
             self.bank_index = new_index
 
     @depends(device_provider=None)
-    def __init__(self, parent = None, device_provider=None, banking_info=None, device_bank_registry=None, toggle_lock=None, use_parameter_banks=False, *a, **k):
+    def __init__(self, parent = None, device_provider=None, device_bank_registry=None, toggle_lock=None, use_parameter_banks=False, *a, **k):
         (super(SimpleDeviceParameterComponent, self).__init__)(*a, **k)
         self.device_control_enabled = False
         self.sysex_smoother = 0
@@ -162,7 +246,10 @@ class SimpleDeviceParameterComponent(Component):
         self._banks = []
         self._bank_index = 0
         self._custom_bank_names = None
-        self._banking_info = banking_info
+        self._custom_display_names = {}
+        self._conditionals = {}
+        self._selectors = {}
+        self._selector_view_slots = self.register_disconnectable(EventObject())
         self._parameter_controls = None
         self._empty_control_slots = self.register_disconnectable(EventObject())
         self._device_param_slots = self.register_disconnectable(EventObject())
@@ -189,17 +276,104 @@ class SimpleDeviceParameterComponent(Component):
     def _on_bank_select_button_released(self):
         pass
 
+    def _setup_selector_view_listeners(self):
+        if not liveobj_valid(self._device):
+            return
+        registered = set()
+        for (bank_idx, slot_idx), sel in self._selectors.items():
+            vp = sel.get("view_property")
+            if vp and vp not in registered and hasattr(self._device, 'view') and hasattr(self._device.view, vp):
+                self._selector_view_slots.register_slot(self._device.view, self._on_selector_view_changed, vp)
+                registered.add(("view", vp))
+            dp = sel.get("device_property")
+            if dp and ("device", dp) not in registered and hasattr(self._device, dp):
+                self._selector_view_slots.register_slot(self._device, self._on_selector_view_changed, dp)
+                registered.add(("device", dp))
+
+    def _on_selector_view_changed(self):
+        if not self._parameter_controls or not liveobj_valid(self._device):
+            return
+        changed = False
+        for (bank_idx, slot_idx), sel in self._selectors.items():
+            if bank_idx != self._bank_index:
+                continue
+            new_idx = sel["index"]
+            vp = sel.get("view_property")
+            dp = sel.get("device_property")
+            if vp and hasattr(self._device, 'view') and hasattr(self._device.view, vp):
+                new_idx = getattr(self._device.view, vp, 0)
+            elif dp and hasattr(self._device, dp):
+                new_idx = int(getattr(self._device, dp, 0))
+            if new_idx != sel["index"]:
+                sel["index"] = new_idx
+                bank = self._banks[bank_idx]
+                _resolve_selector_slots(bank, sel, self._custom_display_names)
+                changed = True
+        if changed:
+            self._empty_control_slots.disconnect()
+            self._connect_parameters()
+
     def _on_device_param_value_changed(self):
         if not self._parameter_controls or not liveobj_valid(self._device):
             return
-        new_validity = [liveobj_valid(p) and p.is_enabled for p in self.parameters]
-        if hasattr(self, '_param_validity') and new_validity != self._param_validity:
+        changed = False
+        for (bank_idx, slot_idx), cond in self._conditionals.items():
+            if bank_idx != self._bank_index:
+                continue
+            watch = cond["watch"]
+            if not liveobj_valid(watch):
+                continue
+            current_val = str(watch)
+            mapped_name = cond["map_names"].get(current_val) or cond["map_names"].get("*", "")
+            new_param = cond["map"].get(current_val) or cond["map"].get("*")
+            old_param = self._banks[bank_idx][slot_idx]
+            if new_param is not old_param:
+                self._banks[bank_idx][slot_idx] = new_param
+                disp = cond.get("map_displays", {}).get(current_val) or cond.get("map_displays", {}).get("*")
+                if disp and new_param and liveobj_valid(new_param):
+                    self._custom_display_names[new_param.name] = disp
+                changed = True
+        new_validity = [liveobj_valid(p) and getattr(p, 'state', 0) == 0 for p in self.parameters]
+        if changed or (hasattr(self, '_param_validity') and new_validity != self._param_validity):
             self._empty_control_slots.disconnect()
             self._connect_parameters()
 
     @listens_group("value")
     def _on_control_value_changed(self, value, control):
         index = list(self._parameter_controls).index(control)
+        sel_key = (self._bank_index, index)
+        if sel_key in self._selectors:
+            sel = self._selectors[sel_key]
+            n = len(sel["values"])
+            delta = value if value < 64 else value - 128
+            new_idx = max(0, min(n - 1, sel["index"] + (1 if delta > 0 else -1)))
+            if new_idx != sel["index"]:
+                sel["index"] = new_idx
+                if sel.get("view_property") and liveobj_valid(self._device) and hasattr(self._device, 'view'):
+                    try:
+                        setattr(self._device.view, sel["view_property"], new_idx)
+                    except Exception:
+                        pass
+                if sel.get("device_property") and liveobj_valid(self._device):
+                    try:
+                        setattr(self._device, sel["device_property"], new_idx)
+                    except Exception:
+                        pass
+                bank = self._banks[self._bank_index]
+                _resolve_selector_slots(bank, sel, self._custom_display_names)
+                self._empty_control_slots.disconnect()
+                self._connect_parameters()
+            if self.device_control_enabled:
+                fader_val = sel["index"] * 127 // max(1, n - 1)
+                try:
+                    ch = control.message_channel()
+                    cc = control.message_identifier()
+                    self._parent._send_midi((0xB0 | ch, cc, fader_val))
+                except Exception:
+                    pass
+                if new_idx == sel["index"]:
+                    self._parent.send_display(PARAM_VALUE, index, sel["values"][sel["index"]])
+            return
         self.sysex_smoother += 1
         if self.sysex_smoother > 2:
             self.sysex_smoother = 0
@@ -211,11 +385,34 @@ class SimpleDeviceParameterComponent(Component):
                 self._parent.send_display(PARAM_VALUE, index, "---")
 
 
+    @listens_group("value")
+    def _on_parameter_value_changed(self, parameter):
+        if not self.device_control_enabled or not self._parameter_controls:
+            return
+        try:
+            index = self.parameters.index(parameter)
+        except ValueError:
+            return
+        if not liveobj_valid(parameter):
+            return
+        controls = list(self._parameter_controls)
+        if index >= len(controls):
+            return
+        control = controls[index]
+        try:
+            cc_val = int(round((parameter.value - parameter.min) / max(parameter.max - parameter.min, 0.001) * 127))
+            cc_val = max(0, min(127, cc_val))
+            ch = control.message_channel()
+            cc = control.message_identifier()
+            self._parent._send_midi((0xB0 | ch, cc, cc_val))
+        except Exception:
+            pass
+
     @listens_group("name")
     def _on_parameter_changed(self, parameter):
         index = self.parameters.index(parameter)
         if self.device_control_enabled:
-            name = display_name(parameter.name)
+            name = self._custom_display_names.get(parameter.name) or display_name(parameter.name)
             self._parent.send_display(PARAM_NAME, index, name)
 
     @device_lock_button.toggled
@@ -267,6 +464,23 @@ class SimpleDeviceParameterComponent(Component):
         self._device = self._device_provider.device
         self._SimpleDeviceParameterComponent__on_parameters_changed.subject = self._device
         self._SimpleDeviceParameterComponent__on_bank_changed.subject = self._device_bank_registry
+        self._on_compare_changed.subject = self._device if liveobj_valid(self._device) else None
+        self._device_on_param = None
+        if liveobj_valid(self._device):
+            print("param8: === DUMP %s ===" % self._device.class_name)
+            for p in self._device.parameters[1:]:
+                items = list(p.value_items) if getattr(p, 'is_quantized', False) else []
+                if items:
+                    print("param8:   [%s] = %s  values: %s" % (p.name, str(p), items))
+                else:
+                    print("param8:   [%s] = %s  (%.1f..%.1f)" % (p.name, str(p), p.min, p.max))
+            print("param8: === END DUMP ===")
+            for p in self._device.parameters:
+                if p.name == 'Device On':
+                    self._device_on_param = p
+                    break
+        self._on_device_on_changed.subject = self._device_on_param
+        self._on_device_on_changed()
         self.bank_index = 0
         self.update()
 
@@ -319,7 +533,9 @@ class SimpleDeviceParameterComponent(Component):
 
         self._update_parameter_banks()
         self._empty_control_slots.disconnect()
+        self._selector_view_slots.disconnect()
         if liveobj_valid(self._device):
+            self._setup_selector_view_listeners()
             self._connect_parameters()
             self._send_device_bank_labels()
         else:
@@ -340,11 +556,11 @@ class SimpleDeviceParameterComponent(Component):
     def _do_send_device_bank_labels(self):
         if not self.device_control_enabled or not liveobj_valid(self._device):
             return
-        device_bank_names = self._custom_bank_names or self._banking_info.device_bank_names(self._device)
-        bank_name = "Bank 1"
-        if device_bank_names:
-            bank_idx = clamp(self._bank_index, 0, len(device_bank_names) - 1)
-            bank_name = device_bank_names[bank_idx]
+        device_bank_names = self._custom_bank_names
+        if not device_bank_names:
+            device_bank_names = ["Bank %d" % (i + 1) for i in range(len(self._banks))]
+        bank_idx = clamp(self._bank_index, 0, len(device_bank_names) - 1)
+        bank_name = device_bank_names[bank_idx]
         device_label = self._device.class_display_name
         if self._device.name and self._device.name != device_label:
             device_label = self._device.name
@@ -362,19 +578,39 @@ class SimpleDeviceParameterComponent(Component):
                 self.release_parameter_controls()
             else:
                 controls = list(self._parameter_controls)
-                self.parameters = [self.selected_bank[i] for i in range(8)]
-                self._param_validity = [liveobj_valid(p) and p.is_enabled for p in self.parameters]
+                bank = self.selected_bank or []
+                self.parameters = [bank[i] if i < len(bank) else None for i in range(8)]
+                self._param_validity = [liveobj_valid(p) and getattr(p, 'state', 0) == 0 for p in self.parameters]
                 self._on_control_value_changed.replace_subjects(self._parameter_controls)
                 self._on_parameter_changed.replace_subjects(self.parameters)
+                self._on_parameter_value_changed.replace_subjects(self.parameters)
                 self._device_param_slots.disconnect()
                 if liveobj_valid(self._device):
                     for p in self._device.parameters:
                         self._device_param_slots.register_slot(p, self._on_device_param_value_changed, "value")
                 for i, control in enumerate(controls):
+                    sel_key = (self._bank_index, i)
+                    if sel_key in self._selectors:
+                        sel = self._selectors[sel_key]
+                        control.release_parameter()
+                        if self.device_control_enabled:
+                            self._parent.send_display(PARAM_NAME, i, sel["name"])
+                            val_str = sel["values"][sel["index"]]
+                            self._parent.send_display(PARAM_VALUE, i, val_str)
+                            n = len(sel["values"])
+                            fader_val = sel["index"] * 127 // max(1, n - 1)
+                            try:
+                                ch = control.message_channel()
+                                cc = control.message_identifier()
+                                self._parent._send_midi((0xB0 | ch, cc, fader_val))
+                            except Exception:
+                                pass
+                        continue
                     parameter = self.parameters[i]
-                    is_valid = liveobj_valid(parameter)
-                    if is_valid:
-                        name = display_name(parameter.name)
+                    if liveobj_valid(parameter):
+                        name = self._custom_display_names.get(parameter.name) or display_name(parameter.name)
+                        if getattr(parameter, 'state', 0) != 0:
+                            name = "~" + name
                         control.connect_to(parameter)
                         if self.device_control_enabled:
                             self._parent.send_display(PARAM_NAME, i, name)
@@ -385,19 +621,14 @@ class SimpleDeviceParameterComponent(Component):
                     else:
                         control.release_parameter()
                         if self.device_control_enabled:
-                            fallback_name = None
+                            self._parent.send_display(PARAM_NAME, i, "---")
+                            self._parent.send_display(PARAM_VALUE, i, "---")
                             try:
-                                class_name = self._device.class_name
-                                if class_name in DEVICE_DICT:
-                                    bank_names = DEVICE_DICT[class_name]
-                                    if self._bank_index < len(bank_names):
-                                        param_names = bank_names[self._bank_index]
-                                        if i < len(param_names) and param_names[i]:
-                                            fallback_name = display_name(param_names[i])
+                                ch = control.message_channel()
+                                cc = control.message_identifier()
+                                self._parent._send_midi((0xB0 | ch, cc, 0))
                             except Exception:
                                 pass
-                            self._parent.send_display(PARAM_NAME, i, fallback_name or "******")
-                            self._parent.send_display(PARAM_VALUE, i, "---")
                         self._empty_control_slots.register_slot(control, nop, "value")
 
     def release_parameter_controls(self):
@@ -407,29 +638,29 @@ class SimpleDeviceParameterComponent(Component):
 
     def _update_parameter_banks(self):
         device = self._device
-        if liveobj_valid(device):
-            custom_mappings = _load_custom_mappings()
-            custom_entry = custom_mappings.get(device.class_name)
-            if custom_entry:
-                custom_banks = _resolve_custom_banks(device, custom_entry)
-                if custom_banks:
-                    self._banks = custom_banks
-                    self._custom_bank_names = [b.get("name", "Bank %d" % (i+1)) for i, b in enumerate(custom_entry.get("banks", []))]
-                else:
-                    self._custom_bank_names = None
-            else:
-                self._custom_bank_names = None
-
-            if not self._custom_bank_names:
-                resolved = _resolve_bank_definitions(device, self._banking_info)
-                if resolved:
-                    self._banks = resolved
-                elif self._use_parameter_banks:
-                    self._banks = parameter_banks(device)
-                else:
-                    self._banks = [best_of_parameter_bank(device)]
-        else:
+        if not liveobj_valid(device):
             self._banks = []
+            return
+        custom_mappings = _load_custom_mappings()
+        custom_entry = custom_mappings.get(device.class_name)
+        if custom_entry:
+            custom_banks, custom_display, conditionals, selectors = _resolve_custom_banks(device, custom_entry)
+            if custom_banks:
+                self._banks = custom_banks
+                self._custom_bank_names = [b.get("name", "Bank %d" % (i+1)) for i, b in enumerate(custom_entry.get("banks", []))]
+                self._custom_display_names = custom_display
+                self._conditionals = conditionals
+                self._selectors = selectors
+                return
+        self._custom_bank_names = None
+        self._custom_display_names = {}
+        self._conditionals = {}
+        self._selectors = {}
+        auto = _auto_banks(device)
+        if auto:
+            self._banks = auto
+        else:
+            self._banks = [list(device.parameters[1:9])]
 
 
     def _update_device_lock_button(self):

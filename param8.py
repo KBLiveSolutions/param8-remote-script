@@ -1,9 +1,8 @@
 import Live
 import json, os
 from ableton.v2.base import const, inject, recursive_map, nop, liveobj_valid, clamp, listenable_property, listens, task, index_if, depends
-from ableton.v2.control_surface import ControlSurface, Layer, BankingInfo, DeviceDecoratorFactory, PrioritizedResource, MIDI_CC_TYPE, MIDI_NOTE_TYPE, PercussionInstrumentFinder
+from ableton.v2.control_surface import ControlSurface, Layer, DeviceDecoratorFactory, PrioritizedResource, MIDI_CC_TYPE, MIDI_NOTE_TYPE, PercussionInstrumentFinder
 from ableton.v2.control_surface import MIDI_CC_TYPE, MIDI_NOTE_TYPE, PrioritizedResource
-from ableton.v2.control_surface.default_bank_definitions import BANK_DEFINITIONS
 
 _DEFAULTS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "defaults.json")
 from ableton.v2.control_surface.elements import ButtonElement, EncoderElement, ButtonMatrixElement, ComboElement, EncoderElement
@@ -87,6 +86,7 @@ class param8(ControlSurface):
     def __init__(self, *a, **k):
         self._param_watchers = {}
         self._last_name_request_sysex = ()
+        self._revert_snapshot = None
         super(param8, self).__init__(*a, **k)
         print("====================================")
         self._has_been_identified = False
@@ -118,8 +118,6 @@ class param8(ControlSurface):
         déjà dans defaults.json sont ajoutées avec leurs banks par défaut.
         Usage: décommenter l'appel dans __init__, recharger le script, recommenter."""
         try:
-            from _Generic.Devices import parameter_banks
-
             if os.path.exists(_DEFAULTS_PATH):
                 with open(_DEFAULTS_PATH, "r") as f:
                     result = json.load(f)
@@ -144,18 +142,16 @@ class param8(ControlSurface):
             for track in all_tracks:
                 for device in track.devices:
                     cn = device.class_name
-                    if cn in result:
-                        continue
                     dn = device.class_display_name
                     cat = browser_cat.get(dn, "audio_effects")
-                    try:
-                        pbanks = parameter_banks(device)
-                    except Exception:
-                        pbanks = []
-                    bank_names = self._banking_info.device_bank_names(device)
+                    from .device import _resolve_banks, _auto_banks
+                    pbanks, bnames = _resolve_banks(device)
+                    if not pbanks or len(pbanks) <= 1:
+                        pbanks = _auto_banks(device) or pbanks or []
+                        bnames = ["Bank %d" % (i + 1) for i in range(len(pbanks))]
                     banks = []
                     for i, bank in enumerate(pbanks):
-                        bname = bank_names[i] if i < len(bank_names) else "Bank %d" % (i + 1)
+                        bname = bnames[i] if i < len(bnames) else "Bank %d" % (i + 1)
                         params = []
                         for p in bank:
                             if liveobj_valid(p):
@@ -213,18 +209,16 @@ class param8(ControlSurface):
         return encoder
 
     def _create_device_parameters(self):
-        self._banking_info = BankingInfo(BANK_DEFINITIONS)
         self._device_parameters = SimpleDeviceParameterComponent(parent=self, name="Device_Parameters",
             is_enabled=True,
             use_parameter_banks=True,
             device_bank_registry = self._device_bank_registry,
-            banking_info = self._banking_info
         )            
         self._device_parameters.layer=Layer(parameter_controls=self.device_parameter_buttons,
                                     next_bank_button=self.buttons["BankUp"],
                                     prev_bank_button=self.buttons["BankDown"],
                                     Compare=self.buttons["A/B"],
-                                    Hotswap=self.buttons["Hotswap"],
+                                    DeviceOn=self.buttons["Hotswap"],
                     #   bank_select_buttons=self._elements.bank_select_buttons
                       )
 
@@ -343,6 +337,31 @@ class param8(ControlSurface):
         self.song.set_data(data_key, json.dumps(mappings))
         print(f"NameRequest: saved mapping {key} -> {param_name} ({device_name} / {track_name})")
 
+    def _clear_param_mapping(self, preset, idx, is_button):
+        key = (preset, idx)
+        if not is_button and key in self._param_watchers:
+            old_param, old_cb = self._param_watchers[key]
+            try:
+                if liveobj_valid(old_param) and old_param.value_has_listener(old_cb):
+                    old_param.remove_value_listener(old_cb)
+            except Exception:
+                pass
+            del self._param_watchers[key]
+            self._send_midi((240, 111, 18, preset, idx, 0, 247))
+            print(f"ClearNaming: removed watcher for encoder {idx} preset {preset}")
+
+        data_key = "param8_mappings"
+        try:
+            raw = self.song.get_data(data_key, "")
+            mappings = json.loads(raw) if raw else {}
+        except Exception:
+            mappings = {}
+        map_key = f"{preset}:{'b' if is_button else 'e'}:{idx}"
+        if map_key in mappings:
+            del mappings[map_key]
+            self.song.set_data(data_key, json.dumps(mappings))
+            print(f"ClearNaming: removed mapping {map_key}")
+
     def _restore_param_mappings(self):
         data_key = "param8_mappings"
         try:
@@ -458,6 +477,23 @@ class param8(ControlSurface):
                 print(f"NameRequest SysEx received: {list(midi_bytes)}")
                 self._handle_name_request(midi_bytes[3], midi_bytes[4])
                 return
+            if midi_bytes[2] == 0x1A:
+                val = midi_bytes[3]
+                print(f"Revert SysEx 0x1A: val={val}")
+                if val == 1:
+                    self._enter_revert()
+                elif val == 0:
+                    self._restore_revert()
+                elif val == 2:
+                    self._discard_revert()
+                return
+            if midi_bytes[2] == 0x19:
+                preset = midi_bytes[3]
+                idx = midi_bytes[4]
+                is_button = midi_bytes[5]
+                print(f"ClearNaming SysEx received: preset={preset} idx={idx} is_button={is_button}")
+                self._clear_param_mapping(preset, idx, is_button)
+                return
             if midi_bytes[2] == 4:
                 print(f"=== PRESET SYSEX received: {midi_bytes[3]} ===")
                 self.active_mode = midi_bytes[3]
@@ -481,18 +517,59 @@ class param8(ControlSurface):
         if midi_bytes[0] == 240 and midi_bytes[-1] == 247:
             self.handle_sysex(midi_bytes)
             return
-        # Shift CC 110 on channel 8 (0-indexed 7): toggle fine-grain sensitivity
         if len(midi_bytes) >= 3:
             status = midi_bytes[0] & 0xF0
             channel = midi_bytes[0] & 0x0F
-            if status == 0xB0 and channel == MIDI_CHANNEL and midi_bytes[1] == 110:
-                is_shift = midi_bytes[2] > 63
-                if is_shift != self._shift_active:
-                    self._shift_active = is_shift
-                    sens = 0.01 if is_shift else 2.0
-                    for enc in self.parameter_controls_raw:
-                        enc.mapping_sensitivity = sens
+            if status == 0xB0 and channel == MIDI_CHANNEL:
+                cc = midi_bytes[1]
+                val = midi_bytes[2]
+                if cc == 110:
+                    is_shift = val > 63
+                    if is_shift != self._shift_active:
+                        self._shift_active = is_shift
+                        sens = 0.01 if is_shift else 2.0
+                        for enc in self.parameter_controls_raw:
+                            enc.mapping_sensitivity = sens
+                    return
         super(param8, self).process_midi_bytes(midi_bytes, midi_processor)
+
+    def _enter_revert(self):
+        self._revert_snapshot = []
+        params = self._get_active_parameters()
+        print(f"Revert: active_mode={self.active_mode} params_count={len(params)}")
+        for i, p in enumerate(params):
+            if p and liveobj_valid(p):
+                self._revert_snapshot.append((p, p.value))
+                print(f"  [{i}] '{p.name}' = {p.value}")
+            else:
+                self._revert_snapshot.append(None)
+                print(f"  [{i}] None")
+        print(f"Revert: snapshot {len([s for s in self._revert_snapshot if s])} params")
+
+    def _restore_revert(self):
+        if not self._revert_snapshot:
+            print("Revert: nothing to restore")
+            self._revert_snapshot = None
+            return
+        for i, entry in enumerate(self._revert_snapshot):
+            if entry:
+                param, value = entry
+                if liveobj_valid(param):
+                    param.value = value
+                    self.send_display(1, i, param.str_for_value(value))
+                    print(f"Revert: restored '{param.name}' = {value}")
+        self._revert_snapshot = None
+
+    def _discard_revert(self):
+        self._revert_snapshot = None
+        print("Revert: discarded")
+
+    def _get_active_parameters(self):
+        if self.active_mode == 7:
+            return list(self._device_parameters.parameters)
+        elif self.active_mode == 6:
+            return self._mixer.get_snapshotable_params()
+        return []
 
     def _add_control(self, number):
         return ButtonElement(True, MIDI_CC_TYPE, MIDI_CHANNEL, number)
