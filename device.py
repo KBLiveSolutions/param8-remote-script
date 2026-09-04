@@ -29,26 +29,6 @@ def _load_custom_mappings():
     except Exception:
         return {}
 
-_DISPLAY_NAMES_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "display_names.json")
-
-def _load_display_names():
-    try:
-        with open(_DISPLAY_NAMES_PATH, "r") as f:
-            return json.load(f)
-    except Exception:
-        return {}
-
-_display_names_cache = None
-
-def display_name(name):
-    global _display_names_cache
-    if _display_names_cache is None:
-        _display_names_cache = _load_display_names()
-    return _display_names_cache.get(name, name)
-
-def reload_display_names():
-    global _display_names_cache
-    _display_names_cache = None
 
 def _resolve_selector_slots(bank, sel, custom_display):
     values = sel["values"]
@@ -412,7 +392,7 @@ class SimpleDeviceParameterComponent(Component):
     def _on_parameter_changed(self, parameter):
         index = self.parameters.index(parameter)
         if self.device_control_enabled:
-            name = self._custom_display_names.get(parameter.name) or display_name(parameter.name)
+            name = self._custom_display_names.get(parameter.name) or parameter.name
             self._parent.send_display(PARAM_NAME, index, name)
 
     @device_lock_button.toggled
@@ -608,7 +588,7 @@ class SimpleDeviceParameterComponent(Component):
                         continue
                     parameter = self.parameters[i]
                     if liveobj_valid(parameter):
-                        name = self._custom_display_names.get(parameter.name) or display_name(parameter.name)
+                        name = self._custom_display_names.get(parameter.name) or parameter.name
                         if getattr(parameter, 'state', 0) != 0:
                             name = "~" + name
                         control.connect_to(parameter)
