@@ -31,38 +31,6 @@
     "category": "audio_effects",
     "display_name": "Amp"
   },
-  "AudioEffectGroupDevice": {
-    "banks": [
-      {
-        "name": "Macros",
-        "parameters": [
-          "Macro 1",
-          "Macro 2",
-          "Macro 3",
-          "Macro 4",
-          "Macro 5",
-          "Macro 6",
-          "Macro 7",
-          "Macro 8"
-        ]
-      },
-      {
-        "name": "Macros 2",
-        "parameters": [
-          "Macro 9",
-          "Macro 10",
-          "Macro 11",
-          "Macro 12",
-          "Macro 13",
-          "Macro 14",
-          "Macro 15",
-          "Macro 16"
-        ]
-      }
-    ],
-    "category": "audio_effects",
-    "display_name": "Audio Effect Rack"
-  },
   "AutoFilter2": {
     "banks": [
       {
@@ -913,38 +881,6 @@
     "category": "instruments",
     "display_name": "Drum Sampler"
   },
-  "DrumGroupDevice": {
-    "banks": [
-      {
-        "name": "Macros",
-        "parameters": [
-          "Macro 1",
-          "Macro 2",
-          "Macro 3",
-          "Macro 4",
-          "Macro 5",
-          "Macro 6",
-          "Macro 7",
-          "Macro 8"
-        ]
-      },
-      {
-        "name": "Macros 2",
-        "parameters": [
-          "Macro 9",
-          "Macro 10",
-          "Macro 11",
-          "Macro 12",
-          "Macro 13",
-          "Macro 14",
-          "Macro 15",
-          "Macro 16"
-        ]
-      }
-    ],
-    "category": "instruments",
-    "display_name": "Drum Rack"
-  },
   "Echo": {
     "banks": [
       {
@@ -1467,38 +1403,6 @@
     ],
     "category": "audio_effects",
     "display_name": "Hybrid Reverb"
-  },
-  "InstrumentGroupDevice": {
-    "banks": [
-      {
-        "name": "Macros",
-        "parameters": [
-          "Macro 1",
-          "Macro 2",
-          "Macro 3",
-          "Macro 4",
-          "Macro 5",
-          "Macro 6",
-          "Macro 7",
-          "Macro 8"
-        ]
-      },
-      {
-        "name": "Macros 2",
-        "parameters": [
-          "Macro 9",
-          "Macro 10",
-          "Macro 11",
-          "Macro 12",
-          "Macro 13",
-          "Macro 14",
-          "Macro 15",
-          "Macro 16"
-        ]
-      }
-    ],
-    "category": "instruments",
-    "display_name": "Instrument Rack"
   },
   "InstrumentImpulse": {
     "banks": [
@@ -2061,38 +1965,6 @@
     ],
     "category": "midi_effects",
     "display_name": "Chord"
-  },
-  "MidiEffectGroupDevice": {
-    "banks": [
-      {
-        "name": "Macros",
-        "parameters": [
-          "Macro 1",
-          "Macro 2",
-          "Macro 3",
-          "Macro 4",
-          "Macro 5",
-          "Macro 6",
-          "Macro 7",
-          "Macro 8"
-        ]
-      },
-      {
-        "name": "Macros 2",
-        "parameters": [
-          "Macro 9",
-          "Macro 10",
-          "Macro 11",
-          "Macro 12",
-          "Macro 13",
-          "Macro 14",
-          "Macro 15",
-          "Macro 16"
-        ]
-      }
-    ],
-    "category": "midi_effects",
-    "display_name": "MIDI Effect Rack"
   },
   "MidiNoteLength": {
     "banks": [

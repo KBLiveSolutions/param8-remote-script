@@ -219,6 +219,7 @@ class SimpleDeviceParameterComponent(Component):
         self.device_control_enabled = False
         self.sysex_smoother = 0
         self._parent = parent
+        self._refresh_scheduled = False
         self.control_offset = 0
         self._toggle_lock = toggle_lock
         self._use_parameter_banks = use_parameter_banks
@@ -315,8 +316,18 @@ class SimpleDeviceParameterComponent(Component):
                 changed = True
         new_validity = [liveobj_valid(p) and getattr(p, 'state', 0) == 0 for p in self.parameters]
         if changed or (hasattr(self, '_param_validity') and new_validity != self._param_validity):
-            self._empty_control_slots.disconnect()
-            self._connect_parameters()
+            self._param_validity = new_validity
+            self._schedule_refresh()
+
+    def _schedule_refresh(self):
+        if not self._refresh_scheduled:
+            self._refresh_scheduled = True
+            self._parent.schedule_message(1, self._do_deferred_refresh)
+
+    def _do_deferred_refresh(self):
+        self._refresh_scheduled = False
+        if self._is_enabled and liveobj_valid(self._device):
+            self.update()
 
     @listens_group("value")
     def _on_control_value_changed(self, value, control):
@@ -466,7 +477,7 @@ class SimpleDeviceParameterComponent(Component):
 
     @listens("parameters")
     def __on_parameters_changed(self):
-        self.update()
+        self._schedule_refresh()
         # self.on_selected_parameter_changed.subject = self._device
         # devices = self.song.view.selected_track.devices
         
