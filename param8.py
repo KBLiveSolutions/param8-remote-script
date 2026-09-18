@@ -21,11 +21,6 @@ SCRIPT_NAME = 'param8'
 SCRIPT_VER = 'v1.0'
 
 MIDI_CHANNEL = 7
-MAX_REQUESTS = 10
-prefix = (240, 122, 29, 1, 19)
-REQUEST_MSG = (240, 122, 29, 1, 19, 2, 247)
-REPLY_MSG = (240, 122, 29, 1, 19, 2, 247)
-ACKNOWLEDGMENT_MSG = (240, 122, 29, 1, 19, 78, 247)
 
 import logging, traceback
 logger = logging.getLogger(__name__)
@@ -89,8 +84,6 @@ class param8(ControlSurface):
         self._revert_snapshot = None
         super(param8, self).__init__(*a, **k)
         print("====================================")
-        self._has_been_identified = False
-        self._request_count = 0
         self._last_sent_layout_byte = None
         self._skin = make_default_skin()
         
@@ -458,17 +451,6 @@ class param8(ControlSurface):
     def port_settings_changed(self):
         super(param8, self).port_settings_changed()
         self.set_enabled(True)
-        self._request_count = 0
-        self._has_been_identified = True
-        # self._request_identification()
-
-    def _request_identification(self):
-        """ Sends request and schedules message to call this method again and do
-        so repeatedly until handshake succeeds or MAX_REQUESTS have been sent. """
-        if not self._has_been_identified and self._request_count < MAX_REQUESTS:
-            self._send_midi(REQUEST_MSG)
-            self.schedule_message(2, self._request_identification)
-            self._request_count += 1
 
     def handle_sysex(self, midi_bytes):
         print(f"=== SYSEX IN: {list(midi_bytes[:8])} ===")
@@ -579,5 +561,4 @@ class param8(ControlSurface):
 
     # def disconnect(self):
     #     super(param8, self).disconnect()
-    #     # self._send_midi(prefix + (3, 247))
     #     # self._session = None

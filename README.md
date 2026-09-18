@@ -48,8 +48,6 @@ __init__.py            # Live entry point (create_instance)
 - Ableton Live, with a version compatible with the `ableton.v2.control_surface` framework used here
 - A Param8 controller running [param8-firmware](https://github.com/KBLiveSolutions/param8-firmware), connected via USB MIDI
 
-## Known Considerations
+## Notes
 
 - `control.py` and `device_navigation.py` are adapted from Ableton's own bundled scripts (Akai Force MPC and Novation control surfaces respectively, via decompiled sources) and used here as base classes for standard Live control-surface behavior.
-- `mappings copy.json` looks like a stray backup of `mappings.json` (similar but not identical size) — worth confirming whether it's still needed before relying on it.
-- The SysEx prefix used for name requests here (`240, 122, 29, 1, 19`) does not match param8-firmware's current SysEx manufacturer/constructor byte (`111` / `0x6F`, see `src/midi/midi.cpp` in that repo) — this is worth re-verifying against the current firmware protocol if live name syncing misbehaves.
