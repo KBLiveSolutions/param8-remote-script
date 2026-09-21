@@ -666,12 +666,20 @@ class SimpleDeviceParameterComponent(Component):
     def _update_device_lock_button(self):
         self.device_lock_button.is_toggled = self._device_provider.is_locked_to_device
 
-    def _send_param8_device_names(self, device):
+    @staticmethod
+    def _default_control_label(active_mode, i):
+        # Matches the factory preset defaults in data/data.json: encoders on
+        # CC 10-17, push buttons on CC 20-27, channel = preset number + 1.
+        channel = active_mode + 1
+        cc = (10 + i) if i < 8 else (20 + (i - 8))
+        return "CC%d/%d" % (cc, channel)
+
+    def _send_param8_device_names(self, device, active_mode):
         for i in range(16):
-            if i + 1 < len(device.parameters):
+            if i + 1 < len(device.parameters) and not device.parameters[i+1].name.startswith("Macro"):
                 name = device.parameters[i+1].name
             else:
-                name = "---"
+                name = self._default_control_label(active_mode, i)
             self._parent.send_display(PARAM_NAME, i, name)
 
     def _resolve_chain_device(self, d):
@@ -680,12 +688,12 @@ class SimpleDeviceParameterComponent(Component):
         chain_devices = d.chains[chain_selector].devices
         return chain_devices[0] if chain_devices else d
 
-    def _on_chain_selector_changed(self, d):
+    def _on_chain_selector_changed(self, d, active_mode):
         if not liveobj_valid(d) or len(d.chains) == 0:
             return
         device = self._resolve_chain_device(d)
         print("Chain selector changed, now showing", device.name)
-        self._send_param8_device_names(device)
+        self._send_param8_device_names(device, active_mode)
 
     def look_for_param8_device(self, active_mode):
         self._chain_selector_slot.disconnect()
@@ -700,5 +708,5 @@ class SimpleDeviceParameterComponent(Component):
                             device = self._resolve_chain_device(d)
                             print("Found param8 chain device", device.name)
                             self._chain_selector_slot.register_slot(
-                                d.parameters[17], lambda d=d: self._on_chain_selector_changed(d), "value")
-                        self._send_param8_device_names(device)
+                                d.parameters[17], lambda d=d, active_mode=active_mode: self._on_chain_selector_changed(d, active_mode), "value")
+                        self._send_param8_device_names(device, active_mode)
