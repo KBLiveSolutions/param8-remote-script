@@ -668,7 +668,7 @@ class SimpleDeviceParameterComponent(Component):
 
     def _send_param8_device_names(self, device):
         for i in range(16):
-            if i + 1 < len(device.parameters):
+            if i + 1 < len(device.parameters) and not device.parameters[i+1].name.startswith("Macro"):
                 name = device.parameters[i+1].name
             else:
                 name = "---"
