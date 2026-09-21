@@ -432,16 +432,18 @@ class MixerComponent(MixerComponentBase):
     def on_track_volume_changed(self):
         if self.mixer_control_enabled:
             if self._selected_track and hasattr(self._selected_track, 'mixer_device'):
-                volume_value = self._selected_track.mixer_device.volume.value
-                self.Track_Volume.send_value(int(volume_value * 127))
+                volume = self._selected_track.mixer_device.volume
+                self.Track_Volume.send_value(int(volume.value * 127))
+                self.send_display(PARAM_VALUE, 4, volume.str_for_value(volume.value))
 
     @listens(u'value')
     def on_track_pan_changed(self):
         if self.mixer_control_enabled:
             if self._selected_track and hasattr(self._selected_track, 'mixer_device'):
-                pan_value = self._selected_track.mixer_device.panning.value
+                panning = self._selected_track.mixer_device.panning
                 # Convertir -1.0/1.0 vers 0-127
-                self.Track_Pan.send_value(int((pan_value + 1.0) * 63.5))
+                self.Track_Pan.send_value(int((panning.value + 1.0) * 63.5))
+                self.send_display(PARAM_VALUE, 5, panning.str_for_value(panning.value))
 
     @listens(u'tempo')
     def on_tempo_changed(self):
@@ -465,13 +467,17 @@ class MixerComponent(MixerComponentBase):
     @listens(u'value')
     def on_cue_volume_changed(self):
         if self.mixer_control_enabled:
-            self.Cue_Volume.send_value(int(self.song.master_track.mixer_device.cue_volume.value * 127))
-            print(f"Cue Volume updated: {self.song.master_track.mixer_device.cue_volume.value:.3f}")
+            cue_volume = self.song.master_track.mixer_device.cue_volume
+            self.Cue_Volume.send_value(int(cue_volume.value * 127))
+            self.send_display(PARAM_VALUE, 1, cue_volume.str_for_value(cue_volume.value))
+            print(f"Cue Volume updated: {cue_volume.value:.3f}")
 
     @listens(u'value')
     def on_master_volume_changed(self):
         if self.mixer_control_enabled:
-            self.Master_Volume.send_value(int(self.song.master_track.mixer_device.volume.value * 127))
+            volume = self.song.master_track.mixer_device.volume
+            self.Master_Volume.send_value(int(volume.value * 127))
+            self.send_display(PARAM_VALUE, 0, volume.str_for_value(volume.value))
             print(f"Master Volume updated: {self.song.master_track.mixer_device.volume.value:.3f}")
 
     def send_display(self, param_type, param_index, value):
