@@ -403,6 +403,8 @@ class SimpleDeviceParameterComponent(Component):
             self._parent._send_midi((0xB0 | ch, cc, cc_val))
         except Exception:
             pass
+        if self.device_control_enabled:
+            self._parent.send_display(PARAM_VALUE, index, str(parameter))
 
     @listens_group("name")
     def _on_parameter_changed(self, parameter):
