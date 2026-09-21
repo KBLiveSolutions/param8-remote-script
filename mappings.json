@@ -72,46 +72,49 @@
     "category": "audio_effects",
     "display_name": "Auto Filter"
   },
-  "AutoPan2": {
+    "AutoPan2": {
     "banks": [
       {
         "name": "Main",
         "parameters": [
-          "Amount",
+          "LFO Amount",
           {
-            "watch": "Time Mode",
+            "watch": "LFO Mode",
             "map": {
-              "Rate": "Frequency",
-              "Time": "Time",
-              "16th": "16th",
-              "*": "Rate"
+              "Rate": "LFO Freq",
+              "Time": "LFO Time",
+              "16th": "LFO 16th",
+              "Synced": "LFO Synced",
+              "Triplet": "LFO Synced",
+              "Dotted": "LFO Synced",
+              "*": "LFO Freq"
             }
           },
-          "Time Mode",
+          "LFO Mode",
           {
             "watch": "Mode",
             "map": {
-              "Panning": "Waveform",
-              "*": "Invert"
+              "Panning": "LFO Wave",
+              "*": "LFO Invert"
             }
           },
           {
             "watch": "Mode",
             "map": {
-              "Panning": "Panning Shape",
-              "*": "Tremolo Shape"
+              "Panning": "LFO Morph",
+              "*": "Tremolo Morph"
             }
           },
           {
-            "watch": "Stereo Mode",
+            "watch": "LFO Stereo Mode",
             "map": {
-              "Spin": "Spin",
-              "*": "Phase"
+              "Spin": "LFO Spin",
+              "*": "LFO Phase"
             }
           },
-          "Attack Time",
+          "LFO Attack",
           {
-            "name": "Dyn Mod",
+            "name": "Dyn LFO Mod",
             "display": "Dynamic Mod"
           }
         ]
