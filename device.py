@@ -666,19 +666,19 @@ class SimpleDeviceParameterComponent(Component):
         self.device_lock_button.is_toggled = self._device_provider.is_locked_to_device
 
     def look_for_param8_device(self, active_mode):
-        for t in self.song.visible_tracks:
+        print(list(self.song.tracks))
+        for t in self.song.tracks:
             for d in t.devices:
                 if d.name.startswith("param8"):
                     items = d.name.split(" ")
                     device = d
-                    print("Found param8 device", d.name, items, len(d.chains), (int(items[1])-1) == active_mode)
                     if len(items) > 1 and (int(items[1])-1) == active_mode:
-                        # if len(d.chains) > 0:
-                        #     chain_selector = int(d.parameters[17].value)
-                        #     device = d.chains[chain_selector].devices[0]
+                        if len(d.chains) > 0:
+                            chain_selector = int(d.parameters[17].value)
+                            device = d.chains[chain_selector].devices[0]
+                            print("Found param8 chain device", device.name, chain_selector)
                         for i in range(16):
                             p = device.parameters[i+1]
                             if not p.name.startswith("Macro"):
                                 print(p.name, p.name.startswith("Macro"))
                                 self._parent.send_display(PARAM_NAME, i, p.name)
-                    return
