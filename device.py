@@ -668,9 +668,11 @@ class SimpleDeviceParameterComponent(Component):
 
     def _send_param8_device_names(self, device):
         for i in range(16):
-            p = device.parameters[i+1]
-            if not p.name.startswith("Macro"):
-                self._parent.send_display(PARAM_NAME, i, p.name)
+            if i + 1 < len(device.parameters):
+                name = device.parameters[i+1].name
+            else:
+                name = "---"
+            self._parent.send_display(PARAM_NAME, i, name)
 
     def _resolve_chain_device(self, d):
         chain_selector = int(d.parameters[17].value)
