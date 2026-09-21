@@ -237,6 +237,7 @@ class SimpleDeviceParameterComponent(Component):
         self._parameter_controls = None
         self._empty_control_slots = self.register_disconnectable(EventObject())
         self._device_param_slots = self.register_disconnectable(EventObject())
+        self._chain_selector_slot = self.register_disconnectable(EventObject())
         self._device_bank_registry = device_bank_registry
         self._device_provider = device_provider
         self._SimpleDeviceParameterComponent__on_provided_device_changed.subject = device_provider
@@ -665,7 +666,27 @@ class SimpleDeviceParameterComponent(Component):
     def _update_device_lock_button(self):
         self.device_lock_button.is_toggled = self._device_provider.is_locked_to_device
 
+    def _send_param8_device_names(self, device):
+        for i in range(16):
+            p = device.parameters[i+1]
+            if not p.name.startswith("Macro"):
+                self._parent.send_display(PARAM_NAME, i, p.name)
+
+    def _resolve_chain_device(self, d):
+        chain_selector = int(d.parameters[17].value)
+        chain_selector = max(0, min(len(d.chains) - 1, chain_selector))
+        chain_devices = d.chains[chain_selector].devices
+        return chain_devices[0] if chain_devices else d
+
+    def _on_chain_selector_changed(self, d):
+        if not liveobj_valid(d) or len(d.chains) == 0:
+            return
+        device = self._resolve_chain_device(d)
+        print("Chain selector changed, now showing", device.name)
+        self._send_param8_device_names(device)
+
     def look_for_param8_device(self, active_mode):
+        self._chain_selector_slot.disconnect()
         print(list(self.song.tracks))
         for t in self.song.tracks:
             for d in t.devices:
@@ -673,12 +694,9 @@ class SimpleDeviceParameterComponent(Component):
                     items = d.name.split(" ")
                     device = d
                     if len(items) > 1 and (int(items[1])-1) == active_mode:
-                        if len(d.chains) > 0:
-                            chain_selector = int(d.parameters[17].value)
-                            device = d.chains[chain_selector].devices[0]
-                            print("Found param8 chain device", device.name, chain_selector)
-                        for i in range(16):
-                            p = device.parameters[i+1]
-                            if not p.name.startswith("Macro"):
-                                print(p.name, p.name.startswith("Macro"))
-                                self._parent.send_display(PARAM_NAME, i, p.name)
+                        if len(d.chains) > 0 and len(d.parameters) > 17:
+                            device = self._resolve_chain_device(d)
+                            print("Found param8 chain device", device.name)
+                            self._chain_selector_slot.register_slot(
+                                d.parameters[17], lambda d=d: self._on_chain_selector_changed(d), "value")
+                        self._send_param8_device_names(device)
