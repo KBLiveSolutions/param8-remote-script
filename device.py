@@ -46,7 +46,7 @@ def _resolve_selector_slots(bank, sel, custom_display):
                 if t_offset < len(dtmpl):
                     custom_display[pname] = dtmpl[t_offset].format(val) if "{}" in dtmpl[t_offset] else dtmpl[t_offset]
 
-def _resolve_custom_banks(device, mapping_entry):
+def _resolve_custom_banks(device, mapping_entry, saved_index=None):
     param_by_name = {}
     for p in device.parameters:
         param_by_name[p.name] = p
@@ -71,6 +71,8 @@ def _resolve_custom_banks(device, mapping_entry):
                         init_idx = getattr(device.view, view_prop, 0)
                     elif dev_prop and hasattr(device, dev_prop):
                         init_idx = int(getattr(device, dev_prop, 0))
+                    elif saved_index is not None:
+                        init_idx = saved_index.get(slot["selector"], 0)
                     sel = {
                         "name": slot["selector"],
                         "values": values,
@@ -230,6 +232,7 @@ class SimpleDeviceParameterComponent(Component):
         self._custom_display_names = {}
         self._conditionals = {}
         self._selectors = {}
+        self._selector_saved_index = {}
         self._selector_view_slots = self.register_disconnectable(EventObject())
         self._parameter_controls = None
         self._empty_control_slots = self.register_disconnectable(EventObject())
@@ -287,6 +290,7 @@ class SimpleDeviceParameterComponent(Component):
                 new_idx = int(getattr(self._device, dp, 0))
             if new_idx != sel["index"]:
                 sel["index"] = new_idx
+                self._selector_saved_index[sel["name"]] = new_idx
                 bank = self._banks[bank_idx]
                 _resolve_selector_slots(bank, sel, self._custom_display_names)
                 changed = True
@@ -340,6 +344,7 @@ class SimpleDeviceParameterComponent(Component):
             new_idx = max(0, min(n - 1, sel["index"] + (1 if delta > 0 else -1)))
             if new_idx != sel["index"]:
                 sel["index"] = new_idx
+                self._selector_saved_index[sel["name"]] = new_idx
                 if sel.get("view_property") and liveobj_valid(self._device) and hasattr(self._device, 'view'):
                     try:
                         setattr(self._device.view, sel["view_property"], new_idx)
@@ -457,6 +462,7 @@ class SimpleDeviceParameterComponent(Component):
         self._SimpleDeviceParameterComponent__on_bank_changed.subject = self._device_bank_registry
         self._on_compare_changed.subject = self._device if liveobj_valid(self._device) else None
         self._device_on_param = None
+        self._selector_saved_index = {}
         if liveobj_valid(self._device):
             print("param8: === DUMP %s ===" % self._device.class_name)
             for p in self._device.parameters[1:]:
@@ -635,7 +641,7 @@ class SimpleDeviceParameterComponent(Component):
         custom_mappings = _load_custom_mappings()
         custom_entry = custom_mappings.get(device.class_name)
         if custom_entry:
-            custom_banks, custom_display, conditionals, selectors = _resolve_custom_banks(device, custom_entry)
+            custom_banks, custom_display, conditionals, selectors = _resolve_custom_banks(device, custom_entry, self._selector_saved_index)
             if custom_banks:
                 self._banks = custom_banks
                 self._custom_bank_names = [b.get("name", "Bank %d" % (i+1)) for i, b in enumerate(custom_entry.get("banks", []))]

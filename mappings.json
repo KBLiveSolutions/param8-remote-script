@@ -77,41 +77,44 @@
       {
         "name": "Main",
         "parameters": [
-          "Amount",
+          "LFO Amount",
           {
-            "watch": "Time Mode",
+            "watch": "LFO Mode",
             "map": {
-              "Rate": "Frequency",
-              "Time": "Time",
-              "16th": "16th",
-              "*": "Rate"
+              "Rate": "LFO Freq",
+              "Time": "LFO Time",
+              "16th": "LFO 16th",
+              "Synced": "LFO Synced",
+              "Triplet": "LFO Synced",
+              "Dotted": "LFO Synced",
+              "*": "LFO Freq"
             }
           },
-          "Time Mode",
+          "LFO Mode",
           {
             "watch": "Mode",
             "map": {
-              "Panning": "Waveform",
-              "*": "Invert"
+              "Panning": "LFO Wave",
+              "*": "LFO Invert"
             }
           },
           {
             "watch": "Mode",
             "map": {
-              "Panning": "Panning Shape",
-              "*": "Tremolo Shape"
+              "Panning": "LFO Morph",
+              "*": "Tremolo Morph"
             }
           },
           {
-            "watch": "Stereo Mode",
+            "watch": "LFO Stereo Mode",
             "map": {
-              "Spin": "Spin",
-              "*": "Phase"
+              "Spin": "LFO Spin",
+              "*": "LFO Phase"
             }
           },
-          "Attack Time",
+          "LFO Attack",
           {
-            "name": "Dyn Mod",
+            "name": "Dyn LFO Mod",
             "display": "Dynamic Mod"
           }
         ]
@@ -1533,7 +1536,7 @@
         "name": "Oscillator",
         "parameters": [
           {
-            "selector": "Eng",
+            "selector": "Engine",
             "values": ["A", "B"],
             "template": ["{} Osc Type", "{} Osc Shape", "{} Osc Tone", "{} On", "{} Octave", "{} Detune", "{} Volume"]
           }
@@ -1543,7 +1546,7 @@
         "name": "Filter",
         "parameters": [
           {
-            "selector": "Eng",
+            "selector": "Engine",
             "values": ["A", "B"],
             "template": ["{} Filter On", "{} Filter Type", "{} Filter Freq", "{} Filter Q", "{} Filter L-B-H-N", "{} Tone Filter", "{} Pan"]
           }
@@ -1553,7 +1556,7 @@
         "name": "Amp Env",
         "parameters": [
           {
-            "selector": "Eng",
+            "selector": "Engine",
             "values": ["A", "B"],
             "template": ["{} Amp Attack", "{} Amp Decay", "{} Amp Sustain", "{} Amp Release", "{} Amp Loop Mode", "{} Glide Time", "{} Volume"]
           }
@@ -1563,7 +1566,7 @@
         "name": "Mod Env",
         "parameters": [
           {
-            "selector": "Eng",
+            "selector": "Engine",
             "values": ["A", "B"],
             "template": ["{} Mod Attack", "{} Mod Decay", "{} Mod Sustain", "{} Mod Release", "{} Mod Peak", "{} Mod Initial", "{} Mod Final"]
           }
@@ -1573,7 +1576,7 @@
         "name": "LFO 1",
         "parameters": [
           {
-            "selector": "Eng",
+            "selector": "Engine",
             "values": ["A", "B"],
             "template": ["{} LFO 1 Type", "{} LFO 1 Rate", "{} LFO 1 Shape", "{} LFO 1 Fold", "{} LFO 1 Sync", "{} LFO 1 Phase", "{} LFO 1 Retrigger"]
           }
@@ -1583,7 +1586,7 @@
         "name": "LFO 2",
         "parameters": [
           {
-            "selector": "Eng",
+            "selector": "Engine",
             "values": ["A", "B"],
             "template": ["{} LFO 2 Waveform", "{} LFO 2 Rate", "{} LFO 2 Sync", "{} LFO 2 Retrigger", "{} LFO 2 Phase Offset", "Voice Spread", "Volume"]
           }
