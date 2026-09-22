@@ -115,8 +115,7 @@ class MixerComponent(MixerComponentBase):
         if self.mixer_control_enabled:
             current_pos = self.song.current_song_time
             song_length = self.song.song_length
-            if song_length > 0:
-                ratio = current_pos / song_length
+            ratio = (current_pos / song_length) if song_length > 0 else 0.0
             # Convertir la position en une valeur MIDI (0-127)
             print(f"Current Song Position: {current_pos:.2f}, Song Length: {song_length:.2f}, Ratio: {ratio:.2f}")
             midi_value = int(ratio * 127)
@@ -195,7 +194,6 @@ class MixerComponent(MixerComponentBase):
             print("Selected track changed")
             selected_track = self.song.view.selected_track
             self.send_display(DEVICE_NAME, 0, selected_track.name)
-            self.send_display(BANK_NAME, 1, "Sends A/B")
             self._update_selected_strip()
 
     def _update_selected_strip(self):
@@ -450,7 +448,7 @@ class MixerComponent(MixerComponentBase):
         if self.mixer_control_enabled:
             current_tempo = self.song.tempo
             self.tempo.send_value(int((current_tempo - 20.0) / (300.0 - 20.0) * 127))
-            # self.send_display(PARAM_VALUE, 0, f"{current_tempo:.2f} BPM")
+            self.send_display(PARAM_VALUE, 2, f"{current_tempo:.2f} BPM")
             print(f"Tempo updated: {current_tempo:.2f} BPM")
 
     @listens(u'selected_scene')
