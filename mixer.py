@@ -115,8 +115,7 @@ class MixerComponent(MixerComponentBase):
         if self.mixer_control_enabled:
             current_pos = self.song.current_song_time
             song_length = self.song.song_length
-            if song_length > 0:
-                ratio = current_pos / song_length
+            ratio = (current_pos / song_length) if song_length > 0 else 0.0
             # Convertir la position en une valeur MIDI (0-127)
             print(f"Current Song Position: {current_pos:.2f}, Song Length: {song_length:.2f}, Ratio: {ratio:.2f}")
             midi_value = int(ratio * 127)
@@ -195,7 +194,6 @@ class MixerComponent(MixerComponentBase):
             print("Selected track changed")
             selected_track = self.song.view.selected_track
             self.send_display(DEVICE_NAME, 0, selected_track.name)
-            self.send_display(BANK_NAME, 1, "Sends A/B")
             self._update_selected_strip()
 
     def _update_selected_strip(self):
@@ -348,7 +346,10 @@ class MixerComponent(MixerComponentBase):
     @tempo.value
     def on_Tempo_changed(self, value, button):
         current_tempo = self.song.tempo
-        new_tempo = self.process_relative_encoder(current_tempo, value, sensitivity=1, min_val=20.0, max_val=300.0)
+        # sensitivity=1 let a single fast turn swing tempo by up to 5 BPM (firmware
+        # amplifies each detent up to x5 in relative mode); 0.2 keeps a max-speed
+        # detent to ~1 BPM. Tune to taste.
+        new_tempo = self.process_relative_encoder(current_tempo, value, sensitivity=0.2, min_val=20.0, max_val=300.0)
         self.song.tempo = new_tempo    
         self.send_display(PARAM_VALUE, 2, f"{new_tempo:.2f} BPM")
 
