@@ -131,13 +131,13 @@ class MixerComponent(MixerComponentBase):
                 param_name = selected_param.name
                 param_value = selected_param.str_for_value(selected_param.value)
                 self.send_display(PARAM_NAME, 7, param_name)
-                # self.send_display(PARAM_VALUE, 7, param_value)
+                self.send_display(PARAM_VALUE, 7, param_value)
                 print(f"Selected parameter changed: {param_name} = {param_value}")
                 self.on_parameter_changed.subject = selected_param
                 self.on_parameter_changed()
             else:
                 self.send_display(PARAM_NAME, 7, "No Param")
-                # self.send_display(PARAM_VALUE, 7, "")
+                self.send_display(PARAM_VALUE, 7, "")
                 print("No parameter selected")
 
     @listens('value')
@@ -146,8 +146,8 @@ class MixerComponent(MixerComponentBase):
             selected_param = self.song.view.selected_parameter
             if liveobj_valid(selected_param):
                 param_value = selected_param.str_for_value(selected_param.value)
-                # self.send_display(PARAM_VALUE, 7, param_value)
-                self.Selected_Parameter.send_value(int((selected_param.value - selected_param.min) / (selected_param.max - selected_param.min) * 127))  
+                self.send_display(PARAM_VALUE, 7, param_value)
+                self.Selected_Parameter.send_value(int((selected_param.value - selected_param.min) / (selected_param.max - selected_param.min) * 127))
                 print(f"Parameter value changed: {selected_param.name} = {param_value}")
 
     @Selected_Parameter.value
