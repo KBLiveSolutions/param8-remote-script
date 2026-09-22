@@ -670,6 +670,10 @@ class SimpleDeviceParameterComponent(Component):
         for i in range(16):
             if i + 1 < len(device.parameters) and not device.parameters[i+1].name.startswith("Macro"):
                 name = device.parameters[i+1].name
+                if name == "*":
+                    # Macro explicitly renamed to hide its knob, same as an
+                    # unrenamed default "Macro N" below.
+                    name = "---"
             else:
                 name = "---"
             self._parent.send_display(PARAM_NAME, i, name)
