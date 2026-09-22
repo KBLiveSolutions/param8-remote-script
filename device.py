@@ -669,13 +669,16 @@ class SimpleDeviceParameterComponent(Component):
     def _send_param8_device_names(self, device):
         for i in range(16):
             if i + 1 < len(device.parameters) and not device.parameters[i+1].name.startswith("Macro"):
-                name = device.parameters[i+1].name
+                raw_name = device.parameters[i+1].name
+                name = raw_name
                 if name == "*":
                     # Macro explicitly renamed to hide its knob, same as an
                     # unrenamed default "Macro N" below.
                     name = "---"
             else:
+                raw_name = None
                 name = "---"
+            print(f"param8 DEBUG _send_param8_device_names[{i}]: raw='{raw_name}' -> sending name='{name}'")
             self._parent.send_display(PARAM_NAME, i, name)
 
     def _resolve_chain_device(self, d):
