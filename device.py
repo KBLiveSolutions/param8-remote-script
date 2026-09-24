@@ -151,6 +151,7 @@ PARAM_NAME = 0
 PARAM_VALUE = 1
 BANK_NAME = 2
 DEVICE_NAME = 3
+TRACK_NAME = 4
 
 class SimpleDeviceParameterComponent(Component):
     bank_select_buttons = control_list(ButtonControl, control_count=15, color=colors.blue, pressed_color=colors.white)
@@ -210,6 +211,18 @@ class SimpleDeviceParameterComponent(Component):
             self.Compare.is_toggled = is_b
             print(f"Compare changed: {is_b}")
 
+    @listens("selected_track")
+    def _on_selected_track_changed_for_label(self):
+        self._send_track_name()
+
+    def _send_track_name(self):
+        """Shows the selected track's name between Track -/Track + (preset 8)."""
+        if not self.device_control_enabled:
+            return
+        selected_track = self.song.view.selected_track
+        name = selected_track.name if liveobj_valid(selected_track) else ""
+        self._parent.send_display(TRACK_NAME, 0, name)
+
     def select_bank(self, factor):
         new_index = self._clamp_to_bank_size(self._bank_index + factor)
         if new_index != self._bank_index:
@@ -240,6 +253,7 @@ class SimpleDeviceParameterComponent(Component):
         self._chain_selector_slot = self.register_disconnectable(EventObject())
         self._device_bank_registry = device_bank_registry
         self._device_provider = device_provider
+        self._on_selected_track_changed_for_label.subject = self.song.view
         self._SimpleDeviceParameterComponent__on_provided_device_changed.subject = device_provider
         self._SimpleDeviceParameterComponent__on_provided_device_changed()
         if toggle_lock:
@@ -534,6 +548,7 @@ class SimpleDeviceParameterComponent(Component):
         self._update_parameter_banks()
         self._empty_control_slots.disconnect()
         self._selector_view_slots.disconnect()
+        self._send_track_name()
         if liveobj_valid(self._device):
             self._setup_selector_view_listeners()
             self._connect_parameters()
