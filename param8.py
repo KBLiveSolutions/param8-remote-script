@@ -101,10 +101,31 @@ class param8(ControlSurface):
         self.send_sysex((240, 111, 5, 0, 247))
         self.schedule_message(20, self._delayed_handshake)
         self._restore_param_mappings()
+        self._on_transport_changed.subject = self.song
+        self._mixer.set_sync_callback(self._send_song_position)
         print("param8 OK")
 
     def _delayed_handshake(self):
         self.send_sysex((240, 111, 5, 0, 247))
+
+    def _send_song_position(self):
+        try:
+            song = self.song()
+            sig_num = song.signature_numerator
+            sig_den = song.signature_denominator
+            ticks = int(song.current_song_time * sig_num * (4.0 / sig_den) * 24)
+            high = (ticks >> 14) & 0x7F
+            mid  = (ticks >> 7)  & 0x7F
+            low  =  ticks        & 0x7F
+            self._send_midi((0xF0, 0x6F, 0x1C, high, mid, low, 0xF7))
+        except Exception as e:
+            print(f"_send_song_position error: {e}")
+
+    @listens('is_playing')
+    def _on_transport_changed(self):
+        if self.song().is_playing:
+            self._mixer._last_sync_beat = -1
+            self._send_song_position()
 
     def _scan_set_devices(self):
         """Scan toutes les devices du Live Set actuel. Celles qui ne sont pas
@@ -475,6 +496,9 @@ class param8(ControlSurface):
                 is_button = midi_bytes[5]
                 print(f"ClearNaming SysEx received: preset={preset} idx={idx} is_button={is_button}")
                 self._clear_param_mapping(preset, idx, is_button)
+                return
+            if midi_bytes[2] == 0x1D:
+                self._send_song_position()
                 return
             if midi_bytes[2] == 4:
                 print(f"=== PRESET SYSEX received: {midi_bytes[3]} ===")

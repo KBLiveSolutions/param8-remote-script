@@ -66,7 +66,9 @@ class MixerComponent(MixerComponentBase):
         self._parent = None
         self._selected_track = None
         self.mixer_control_enabled = False
-        
+        self._sync_callback = None
+        self._last_sync_beat = -1
+
         super(MixerComponent, self).__init__(*a, **k)
         self.on_cue_volume_changed.subject = self.song.master_track.mixer_device.cue_volume
         self.on_master_volume_changed.subject = self.song.master_track.mixer_device.volume
@@ -112,11 +114,21 @@ class MixerComponent(MixerComponentBase):
 
     @listens('current_song_time')
     def _on_song_position_changed(self):
+        try:
+            sig_num = self.song.signature_numerator
+            sig_den = self.song.signature_denominator
+            beat = int(self.song.current_song_time * sig_num * (4.0 / sig_den))
+            if beat != self._last_sync_beat:
+                self._last_sync_beat = beat
+                if self._sync_callback is not None:
+                    self._sync_callback()
+        except Exception as e:
+            print(f"_on_song_position_changed sync error: {e}")
+
         if self.mixer_control_enabled:
             current_pos = self.song.current_song_time
             song_length = self.song.song_length
             ratio = (current_pos / song_length) if song_length > 0 else 0.0
-            # Convertir la position en une valeur MIDI (0-127)
             print(f"Current Song Position: {current_pos:.2f}, Song Length: {song_length:.2f}, Ratio: {ratio:.2f}")
             midi_value = int(ratio * 127)
             self.Song_Position.send_value(midi_value)
@@ -187,6 +199,9 @@ class MixerComponent(MixerComponentBase):
     def set_parent(self, parent):
         """Permet de définir le parent pour envoyer des messages"""
         self._parent = parent
+
+    def set_sync_callback(self, cb):
+        self._sync_callback = cb
 
     @listens("selected_track")
     def _on_selected_track_changed(self):
