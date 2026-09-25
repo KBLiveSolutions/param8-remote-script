@@ -110,7 +110,7 @@ class param8(ControlSurface):
 
     def _send_song_position(self):
         try:
-            song = self.song()
+            song = self.song
             sig_num = song.signature_numerator
             sig_den = song.signature_denominator
             ticks = int(song.current_song_time * sig_num * (4.0 / sig_den) * 24)
@@ -123,7 +123,7 @@ class param8(ControlSurface):
 
     @listens('is_playing')
     def _on_transport_changed(self):
-        if self.song().is_playing:
+        if self.song.is_playing:
             self._mixer._last_sync_beat = -1
             self._send_song_position()
 

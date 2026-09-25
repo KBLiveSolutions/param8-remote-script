@@ -346,7 +346,7 @@ class MixerComponent(MixerComponentBase):
             new_value = round(new_value, 2)
             self._selected_track.mixer_device.volume.value = new_value
             print(f"Track Volume: {current_value:.3f} -> {new_value:.3f}")
-            self.send_display(PARAM_VALUE, 4, self.song.master_track.mixer_device.volume.str_for_value(new_value))
+            self.send_display(PARAM_VALUE, 4, self._selected_track.mixer_device.volume.str_for_value(new_value))
 
     @Track_Pan.value
     def on_Track_Pan_changed(self, value, button):
@@ -355,7 +355,7 @@ class MixerComponent(MixerComponentBase):
             new_value = self.process_relative_encoder(current_value, value, sensitivity=0.015, min_val=-1.0, max_val=1.0)
             self._selected_track.mixer_device.panning.value = new_value
             print(f"Track Pan: {current_value:.3f} -> {new_value:.3f}")
-            self.send_display(PARAM_VALUE, 5, self.song.master_track.mixer_device.panning.str_for_value(new_value))
+            self.send_display(PARAM_VALUE, 5, self._selected_track.mixer_device.panning.str_for_value(new_value))
 
 
     @tempo.value
