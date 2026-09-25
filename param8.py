@@ -103,6 +103,7 @@ class param8(ControlSurface):
         self._restore_param_mappings()
         self._on_transport_changed.subject = self.song
         self._mixer.set_sync_callback(self._send_song_position)
+        self._on_selected_track_for_device.subject = self.song.view
         print("param8 OK")
 
     def _delayed_handshake(self):
@@ -126,6 +127,19 @@ class param8(ControlSurface):
         if self.song.is_playing:
             self._mixer._last_sync_beat = -1
             self._send_song_position()
+
+    @listens('selected_track')
+    def _on_selected_track_for_device(self):
+        if self.active_mode == 7:
+            self._send_track_name()
+
+    def _send_track_name(self):
+        try:
+            track = self.song.view.selected_track
+            name = track.name if liveobj_valid(track) else "---"
+            self.send_display(6, 0, name)
+        except Exception as e:
+            print(f"_send_track_name error: {e}")
 
     def _scan_set_devices(self):
         """Scan toutes les devices du Live Set actuel. Celles qui ne sont pas
@@ -509,6 +523,7 @@ class param8(ControlSurface):
                     self._device_parameters.device_control_enabled = True
                     self._device_parameters._update_parameter_banks()
                     self._device_parameters.update()
+                    self._send_track_name()
                 elif self.active_mode == 6:
                     self._mixer.mixer_control_enabled = True
                     self._mixer.update_component()
