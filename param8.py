@@ -390,6 +390,26 @@ class param8(ControlSurface):
             self.song.set_data(data_key, json.dumps(mappings))
             print(f"ClearNaming: removed mapping {map_key}")
 
+    def _send_preset_names(self, preset):
+        data_key = "param8_mappings"
+        try:
+            raw = self.song.get_data(data_key, "")
+            mappings = json.loads(raw) if raw else {}
+        except Exception:
+            return
+        for key, info in mappings.items():
+            parts = key.split(":")
+            if len(parts) != 3 or int(parts[0]) != preset:
+                continue
+            is_button = parts[1] == "b"
+            idx = int(parts[2])
+            name = info["param"][:11]
+            message = [240, 111, 15, preset, idx, 1 if is_button else 0]
+            for c in name:
+                message.append(ord(c) & 0x7F)
+            message.append(247)
+            self._send_midi(tuple(message))
+
     def _restore_param_mappings(self):
         data_key = "param8_mappings"
         try:
@@ -401,6 +421,7 @@ class param8(ControlSurface):
         if not mappings:
             return
         print(f"NameRequest: restoring {len(mappings)} mapping(s)")
+        sent_presets = set()
         for key, info in mappings.items():
             parts = key.split(":")
             if len(parts) != 3:
@@ -408,12 +429,15 @@ class param8(ControlSurface):
             preset = int(parts[0])
             is_button = parts[1] == "b"
             idx = int(parts[2])
+            sent_presets.add(preset)
             param = self._find_param_by_names(info["track"], info["device"], info["param"])
             if param and not is_button:
                 self._watch_parameter(preset, idx, param)
                 print(f"NameRequest: restored watcher for '{info['param']}' on encoder {idx} preset {preset}")
             elif not param:
                 print(f"NameRequest: could not find param '{info['param']}' on '{info['device']}' ({info['track']})")
+        for p in sent_presets:
+            self._send_preset_names(p)
 
     def _find_param_by_names(self, track_name, device_name, param_name):
         for track in list(self.song.visible_tracks) + list(self.song.return_tracks) + [self.song.master_track]:
@@ -532,6 +556,7 @@ class param8(ControlSurface):
                     self._device_parameters.look_for_param8_device(self.active_mode)
                     self.request_rebuild_midi_map()
                     self._device_parameters.update()
+                    self._send_preset_names(self.active_mode)
 
 
     def process_midi_bytes(self, midi_bytes, midi_processor):
