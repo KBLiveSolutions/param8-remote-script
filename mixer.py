@@ -281,45 +281,42 @@ class MixerComponent(MixerComponentBase):
     def on_selected_device_changed(self):
         print("Selected device changed")
 
+    def _all_navigable_tracks(self):
+        return list(self.song.visible_tracks) + list(self.song.return_tracks) + [self.song.master_track]
+
     @next_track_button.released_immediately
     def on_next_track_button_pressed(self, button):
-        tracks = list(self.song.visible_tracks)
-        current_index = tracks.index(self.song.view.selected_track)
-        next_index = (current_index + 1) % len(tracks)
-        self.song.view.selected_track = tracks[next_index]
-        print(f"Selected track: {self.song.view.selected_track.name}")  
-    
+        tracks = self._all_navigable_tracks()
+        selected = self.song.view.selected_track
+        current_index = next((i for i, t in enumerate(tracks) if t == selected), 0)
+        self.song.view.selected_track = tracks[(current_index + 1) % len(tracks)]
+        print(f"Selected track: {self.song.view.selected_track.name}")
+
     @prev_track_button.released_immediately
-    def on_prev_track_button_pressed(self, button):    
-        tracks = list(self.song.visible_tracks)
-        current_index = tracks.index(self.song.view.selected_track)
-        prev_index = (current_index - 1) % len(tracks)
-        self.song.view.selected_track = tracks[prev_index]
+    def on_prev_track_button_pressed(self, button):
+        tracks = self._all_navigable_tracks()
+        selected = self.song.view.selected_track
+        current_index = next((i for i, t in enumerate(tracks) if t == selected), 0)
+        self.song.view.selected_track = tracks[(current_index - 1) % len(tracks)]
         print(f"Selected track: {self.song.view.selected_track.name}")
 
     @next_track_button.pressed_delayed
     def on_next_track_button_pressed_delayed(self, button):
-        tracks = list(self.song.visible_tracks)
-        current_index = tracks.index(self.song.view.selected_track)
-        if tracks[current_index].is_foldable and tracks[current_index].view.is_collapsed:
+        tracks = self._all_navigable_tracks()
+        selected = self.song.view.selected_track
+        current_index = next((i for i, t in enumerate(tracks) if t == selected), 0)
+        if hasattr(tracks[current_index], 'is_foldable') and tracks[current_index].is_foldable and tracks[current_index].view.is_collapsed:
             tracks[current_index].view.is_collapsed = False
             print(f"Track {tracks[current_index].name} expanded")
-        # else:
-        #     next_index = (current_index + 1) % len(tracks)
-        #     self.song.view.selected_track = tracks[next_index]
-        #     print(f"Next Track Button Pressed Delayed: {len(tracks)} tracks available")
 
     @prev_track_button.pressed_delayed
-    def on_prev_track_button_pressed_delayed(self, button):  
-        tracks = list(self.song.visible_tracks)
-        current_index = tracks.index(self.song.view.selected_track)
-        if tracks[current_index].is_foldable and not tracks[current_index].view.is_collapsed:
+    def on_prev_track_button_pressed_delayed(self, button):
+        tracks = self._all_navigable_tracks()
+        selected = self.song.view.selected_track
+        current_index = next((i for i, t in enumerate(tracks) if t == selected), 0)
+        if hasattr(tracks[current_index], 'is_foldable') and tracks[current_index].is_foldable and not tracks[current_index].view.is_collapsed:
             tracks[current_index].view.is_collapsed = True
             print(f"Track {tracks[current_index].name} collapsed")
-        # else:
-        #     prev_index = (current_index - 1) % len(tracks)
-        #     self.song.view.selected_track = tracks[prev_index]
-        #     print(f"Prev Track Button Pressed Delayed: {len(tracks)} tracks available") 
 
     @Cue_Volume.value
     def on_Cue_Volume_changed(self, value, button):
