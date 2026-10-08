@@ -20,6 +20,8 @@ from .colors import LIVE_COLORS_TO_MIDI_VALUES, RGB_COLOR_TABLE
 SCRIPT_NAME = 'param8'
 SCRIPT_VER = 'v1.0'
 
+_instances = []
+
 MIDI_CHANNEL = 7
 
 import logging, traceback
@@ -82,8 +84,11 @@ class param8(ControlSurface):
         self._param_watchers = {}
         self._last_name_request_sysex = ()
         self._revert_snapshot = None
+        _instances.append(self)
+        self._instance_id = _instances.index(self)
         super(param8, self).__init__(*a, **k)
         print("====================================")
+        print(f"param8 INSTANCE_ID={self._instance_id}  (all instances: {len(_instances)})  -> will default to bank {self._instance_id}")
         self._last_sent_layout_byte = None
         self._skin = make_default_skin()
         
@@ -102,15 +107,26 @@ class param8(ControlSurface):
         self.schedule_message(20, self._delayed_handshake)
         self._restore_param_mappings()
         self._on_transport_changed.subject = self.song
-        self._mixer.set_sync_callback(self._send_song_position)
+        self._on_tempo_changed.subject = self.song
         self._on_selected_track_for_device.subject = self.song.view
         print("param8 OK")
 
     def _delayed_handshake(self):
         self.send_sysex((240, 111, 5, 0, 247))
 
+    def _send_bpm(self):
+        try:
+            bpm_cents = int(round(self.song.tempo * 100))
+            b2 = (bpm_cents >> 14) & 0x7F
+            b1 = (bpm_cents >> 7)  & 0x7F
+            b0 =  bpm_cents        & 0x7F
+            self._send_midi((0xF0, 0x6F, 0x1E, b2, b1, b0, 0xF7))
+        except Exception as e:
+            print(f"_send_bpm error: {e}")
+
     def _send_song_position(self):
         try:
+            self._send_bpm()
             song = self.song
             sig_num = song.signature_numerator
             sig_den = song.signature_denominator
@@ -128,9 +144,13 @@ class param8(ControlSurface):
             self._mixer._last_sync_beat = -1
             self._send_song_position()
 
+    @listens('tempo')
+    def _on_tempo_changed(self):
+        self._send_bpm()
+
     @listens('selected_track')
     def _on_selected_track_for_device(self):
-        if self.active_mode == 7:
+        if self.active_mode == 25:
             self._send_track_name()
 
     def _send_track_name(self):
@@ -288,7 +308,7 @@ class param8(ControlSurface):
             return
         name = selected_param.name[:11]
         preset = self.active_mode
-        if preset >= 6:
+        if preset >= 24:
             print(f"NameRequest: ignored on preset {preset}")
             return
         message = [240, 111, 15, preset, idx, is_button]
@@ -543,12 +563,12 @@ class param8(ControlSurface):
                 self.active_mode = midi_bytes[3]
                 self._mixer.mixer_control_enabled = False
                 self._device_parameters.device_control_enabled = False
-                if self.active_mode == 7:
+                if self.active_mode == 25:
                     self._device_parameters.device_control_enabled = True
                     self._device_parameters._update_parameter_banks()
                     self._device_parameters.update()
                     self._send_track_name()
-                elif self.active_mode == 6:
+                elif self.active_mode == 24:
                     self._mixer.mixer_control_enabled = True
                     self._mixer.update_component()
                     self.schedule_message(5, self._mixer._send_all_value_displays)
@@ -611,9 +631,9 @@ class param8(ControlSurface):
         print("Revert: discarded")
 
     def _get_active_parameters(self):
-        if self.active_mode == 7:
+        if self.active_mode == 25:
             return list(self._device_parameters.parameters)
-        elif self.active_mode == 6:
+        elif self.active_mode == 24:
             return self._mixer.get_snapshotable_params()
         return []
 
@@ -623,6 +643,9 @@ class param8(ControlSurface):
     def _add_slider(self, number):
         return EncoderElement(MIDI_CC_TYPE, MIDI_CHANNEL, number, Live.MidiMap.MapMode.relative_smooth_two_compliment)
 
-    # def disconnect(self):
-    #     super(param8, self).disconnect()
-    #     # self._session = None
+    def disconnect(self):
+        try:
+            _instances.remove(self)
+        except ValueError:
+            pass
+        super(param8, self).disconnect()

@@ -467,21 +467,24 @@ class SimpleDeviceParameterComponent(Component):
         self._device_on_param = None
         self._selector_saved_index = {}
         if liveobj_valid(self._device):
-            print("param8: === DUMP %s ===" % self._device.class_name)
+            # print("param8: === DUMP %s ===" % self._device.class_name)
             for p in self._device.parameters[1:]:
                 items = list(p.value_items) if getattr(p, 'is_quantized', False) else []
-                if items:
-                    print("param8:   [%s] = %s  values: %s" % (p.name, str(p), items))
-                else:
-                    print("param8:   [%s] = %s  (%.1f..%.1f)" % (p.name, str(p), p.min, p.max))
-            print("param8: === END DUMP ===")
+            #     if items:
+            #         print("param8:   [%s] = %s  values: %s" % (p.name, str(p), items))
+            #     else:
+            #         print("param8:   [%s] = %s  (%.1f..%.1f)" % (p.name, str(p), p.min, p.max))
+            # print("param8: === END DUMP ===")
             for p in self._device.parameters:
                 if p.name == 'Device On':
                     self._device_on_param = p
                     break
         self._on_device_on_changed.subject = self._device_on_param
         self._on_device_on_changed()
-        self.bank_index = 0
+        instance_id = getattr(self._parent, '_instance_id', 0)
+        device_name = self._device.name if liveobj_valid(self._device) else 'None'
+        print("param8 device: __on_provided_device_changed instance_id=%d device='%s' banks_before=%d" % (instance_id, device_name, len(self._banks)))
+        self._bank_index = instance_id
         self.update()
 
     @listens("parameters")
@@ -532,6 +535,11 @@ class SimpleDeviceParameterComponent(Component):
             return
 
         self._update_parameter_banks()
+        if self._banks:
+            clamped = clamp(self._bank_index, 0, len(self._banks) - 1)
+            if clamped != self._bank_index:
+                print("param8 device: update() clamped _bank_index %d -> %d (banks=%d)" % (self._bank_index, clamped, len(self._banks)))
+            self._bank_index = clamped
         self._empty_control_slots.disconnect()
         self._selector_view_slots.disconnect()
         if liveobj_valid(self._device):
