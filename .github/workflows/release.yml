@@ -1,0 +1,33 @@
+name: Release param8.zip
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build param8.zip
+        run: |
+          mkdir -p dist/param8
+          cp -r . dist/param8/
+          rm -rf dist/param8/.git dist/param8/.github
+          find dist/param8 -name '*.pyc' -delete
+          find dist/param8 -type d -name '__pycache__' -exec rm -rf {} + 2>/dev/null; true
+          cd dist && zip -r ../param8.zip param8/
+
+      - name: Recreate latest release
+        run: |
+          gh release delete latest --cleanup-tag --yes 2>/dev/null || true
+          gh release create latest param8.zip \
+            --title "Latest" \
+            --notes "Latest build. Download param8.zip and place the param8 folder in your Ableton Remote Scripts directory." \
+            --prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
