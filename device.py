@@ -151,6 +151,7 @@ PARAM_NAME = 0
 PARAM_VALUE = 1
 BANK_NAME = 2
 DEVICE_NAME = 3
+PARAM_QUANTIZED = 0x1F
 
 class SimpleDeviceParameterComponent(Component):
     bank_select_buttons = control_list(ButtonControl, control_count=15, color=colors.blue, pressed_color=colors.white)
@@ -554,6 +555,7 @@ class SimpleDeviceParameterComponent(Component):
                 for i in range(8):
                     self._parent.send_display(PARAM_NAME, i, "---")
                     self._parent.send_display(PARAM_VALUE, i, "---")
+                    self._parent.send_display(PARAM_QUANTIZED, i, "", 0)
 
     def _send_device_bank_labels(self):
         if not self.device_control_enabled:
@@ -605,6 +607,7 @@ class SimpleDeviceParameterComponent(Component):
                             self._parent.send_display(PARAM_NAME, i, sel["name"])
                             val_str = sel["values"][sel["index"]]
                             self._parent.send_display(PARAM_VALUE, i, val_str)
+                            self._parent.send_display(PARAM_QUANTIZED, i, "", min(len(sel["values"]), 127))
                             n = len(sel["values"])
                             fader_val = sel["index"] * 127 // max(1, n - 1)
                             try:
@@ -626,11 +629,14 @@ class SimpleDeviceParameterComponent(Component):
                                 self._parent.send_display(PARAM_VALUE, i, str(parameter))
                             except Exception:
                                 self._parent.send_display(PARAM_VALUE, i, "---")
+                            num_q = min(len(parameter.value_items), 127) if len(parameter.value_items) >= 2 else 0
+                            self._parent.send_display(PARAM_QUANTIZED, i, "", num_q)
                     else:
                         control.release_parameter()
                         if self.device_control_enabled:
                             self._parent.send_display(PARAM_NAME, i, "---")
                             self._parent.send_display(PARAM_VALUE, i, "---")
+                            self._parent.send_display(PARAM_QUANTIZED, i, "", 0)
                             try:
                                 ch = control.message_channel()
                                 cc = control.message_identifier()
