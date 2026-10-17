@@ -897,7 +897,7 @@
           "",
           {
             "name": "Mod Dest",
-            "display": "Velocity > …"
+            "display": "Velocity > \u2026"
           },
           {
             "watch": "Mod Dest",
@@ -3437,7 +3437,10 @@
           "Left Inv",
           "Right Inv",
           "Channel Mode",
-          "Gain",
+          {
+            "name": "Output",
+            "display": "Gain"
+          },
           "Mono",
           "Balance",
           null,

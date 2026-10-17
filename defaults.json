@@ -3414,7 +3414,10 @@
           "Left Inv",
           "Right Inv",
           "Channel Mode",
-          "Gain",
+          {
+            "name": "Output",
+            "display": "Gain"
+          },
           "Mono",
           "Balance",
           null,

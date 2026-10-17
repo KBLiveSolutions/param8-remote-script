@@ -468,14 +468,6 @@ class SimpleDeviceParameterComponent(Component):
         self._device_on_param = None
         self._selector_saved_index = {}
         if liveobj_valid(self._device):
-            # print("param8: === DUMP %s ===" % self._device.class_name)
-            for p in self._device.parameters[1:]:
-                items = list(p.value_items) if getattr(p, 'is_quantized', False) else []
-            #     if items:
-            #         print("param8:   [%s] = %s  values: %s" % (p.name, str(p), items))
-            #     else:
-            #         print("param8:   [%s] = %s  (%.1f..%.1f)" % (p.name, str(p), p.min, p.max))
-            # print("param8: === END DUMP ===")
             for p in self._device.parameters:
                 if p.name == 'Device On':
                     self._device_on_param = p
@@ -629,7 +621,11 @@ class SimpleDeviceParameterComponent(Component):
                                 self._parent.send_display(PARAM_VALUE, i, str(parameter))
                             except Exception:
                                 self._parent.send_display(PARAM_VALUE, i, "---")
-                            num_q = min(len(parameter.value_items), 127) if len(parameter.value_items) >= 2 else 0
+                            try:
+                                items = list(parameter.value_items)
+                                num_q = min(len(items), 127) if len(items) >= 2 else 0
+                            except (RuntimeError, AttributeError):
+                                num_q = 0
                             self._parent.send_display(PARAM_QUANTIZED, i, "", num_q)
                     else:
                         control.release_parameter()

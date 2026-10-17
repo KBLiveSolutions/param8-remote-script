@@ -30,7 +30,6 @@ jobs:
           gh release delete latest --cleanup-tag --yes 2>/dev/null || true
           gh release create latest param8.zip \
             --title "Latest" \
-            --notes "Latest build. Download param8.zip and place the param8 folder in your Ableton Remote Scripts directory." \
-            --prerelease
+            --notes "Latest build. Download param8.zip and place the param8 folder in your Ableton Remote Scripts directory."
         env:
           GH_TOKEN: ${{ github.token }}
