@@ -72,7 +72,7 @@
     "category": "audio_effects",
     "display_name": "Auto Filter"
   },
-    "AutoPan2": {
+  "AutoPan2": {
     "banks": [
       {
         "name": "Main",
@@ -307,8 +307,19 @@
         "parameters": [
           {
             "selector": "Res",
-            "values": ["1", "2"],
-            "template": ["Res {} On/Off", "Res {} Type", "Res {} Tune", "Res {} Decay", "Res {} Material", "Res {} Hit", "Res {} Brightness"]
+            "values": [
+              "1",
+              "2"
+            ],
+            "template": [
+              "Res {} On/Off",
+              "Res {} Type",
+              "Res {} Tune",
+              "Res {} Decay",
+              "Res {} Material",
+              "Res {} Hit",
+              "Res {} Brightness"
+            ]
           }
         ]
       },
@@ -317,8 +328,19 @@
         "parameters": [
           {
             "selector": "Res",
-            "values": ["1", "2"],
-            "template": ["Res {} Fine Tune", "Res {} Inharmonics", "Res {} Radius", "Res {} Ratio", "Res {} Bleed", "Res {} Listening L", "Res {} Volume"]
+            "values": [
+              "1",
+              "2"
+            ],
+            "template": [
+              "Res {} Fine Tune",
+              "Res {} Inharmonics",
+              "Res {} Radius",
+              "Res {} Ratio",
+              "Res {} Bleed",
+              "Res {} Listening L",
+              "Res {} Volume"
+            ]
           }
         ]
       },
@@ -327,8 +349,19 @@
         "parameters": [
           {
             "selector": "LFO",
-            "values": ["1", "2"],
-            "template": ["LFO {} On/Off", "LFO {} Shape", "LFO {} Rate", "LFO {} Depth", "LFO {} Dest A", "LFO {} Amt A", "LFO {} Dest B"]
+            "values": [
+              "1",
+              "2"
+            ],
+            "template": [
+              "LFO {} On/Off",
+              "LFO {} Shape",
+              "LFO {} Rate",
+              "LFO {} Depth",
+              "LFO {} Dest A",
+              "LFO {} Amt A",
+              "LFO {} Dest B"
+            ]
           }
         ]
       }
@@ -613,21 +646,30 @@
             "watch": "Env 2 Cyc On",
             "map": {
               "Env": "Env 2 Attack",
-              "*": {"name": "Cyc Env Tilt", "display": "Cyc Tilt"}
+              "*": {
+                "name": "Cyc Env Tilt",
+                "display": "Cyc Tilt"
+              }
             }
           },
           {
             "watch": "Env 2 Cyc On",
             "map": {
               "Env": "Env 2 Decay",
-              "*": {"name": "Cyc Env Hold", "display": "Cyc Hold"}
+              "*": {
+                "name": "Cyc Env Hold",
+                "display": "Cyc Hold"
+              }
             }
           },
           {
             "watch": "Env 2 Cyc On",
             "map": {
               "Env": "Env 2 Release",
-              "*": {"name": "Cyc Env Time Mode", "display": "Cyc Mode"}
+              "*": {
+                "name": "Cyc Env Time Mode",
+                "display": "Cyc Mode"
+              }
             }
           }
         ]
@@ -676,9 +718,18 @@
             "watch": "Voice Mode",
             "map": {
               "Poly": "",
-              "Mono": {"name": "Thickness", "display": "Thickness"},
-              "Stereo": {"name": "Spread", "display": "Spread"},
-              "Unison": {"name": "Strength", "display": "Strength"}
+              "Mono": {
+                "name": "Thickness",
+                "display": "Thickness"
+              },
+              "Stereo": {
+                "name": "Spread",
+                "display": "Spread"
+              },
+              "Unison": {
+                "name": "Strength",
+                "display": "Strength"
+              }
             }
           },
           {
@@ -893,16 +944,28 @@
           {
             "watch": "L Sync",
             "map": {
-              "Off": {"name": "L Time", "display": "L Time"},
-              "On": {"name": "L Synced", "display": "L Synced"},
+              "Off": {
+                "name": "L Time",
+                "display": "L Time"
+              },
+              "On": {
+                "name": "L Synced",
+                "display": "L Synced"
+              },
               "*": "L Time"
             }
           },
           {
             "watch": "L Sync",
             "map": {
-              "On": {"name": "L Sync Mode", "display": "L Mode"},
-              "*": {"name": "L Offset", "display": "L Offset"}
+              "On": {
+                "name": "L Sync Mode",
+                "display": "L Mode"
+              },
+              "*": {
+                "name": "L Offset",
+                "display": "L Offset"
+              }
             }
           },
           "Reverb Level",
@@ -920,16 +983,28 @@
           {
             "watch": "R Sync",
             "map": {
-              "Off": {"name": "R Time", "display": "R Time"},
-              "On": {"name": "R Synced", "display": "R Synced"},
+              "Off": {
+                "name": "R Time",
+                "display": "R Time"
+              },
+              "On": {
+                "name": "R Synced",
+                "display": "R Synced"
+              },
               "*": "R Time"
             }
           },
           {
             "watch": "R Sync",
             "map": {
-              "On": {"name": "R Sync Mode", "display": "R Mode"},
-              "*": {"name": "R Offset", "display": "R Offset"}
+              "On": {
+                "name": "R Sync Mode",
+                "display": "R Mode"
+              },
+              "*": {
+                "name": "R Offset",
+                "display": "R Offset"
+              }
             }
           },
           "FB Invert",
@@ -959,8 +1034,14 @@
           {
             "watch": "Mod Sync",
             "map": {
-              "Off": {"name": "Mod Freq", "display": "Mod Freq"},
-              "On": {"name": "Mod Rate", "display": "Mod Rate"},
+              "Off": {
+                "name": "Mod Freq",
+                "display": "Mod Freq"
+              },
+              "On": {
+                "name": "Mod Rate",
+                "display": "Mod Rate"
+              },
               "*": "Mod Freq"
             }
           },
@@ -980,8 +1061,14 @@
           "Duck On",
           "Duck Thr",
           "Duck Release",
-          {"name": "Noise Amt", "display": "Noise"},
-          {"name": "Wobble Amt", "display": "Wobble"}
+          {
+            "name": "Noise Amt",
+            "display": "Noise"
+          },
+          {
+            "name": "Wobble Amt",
+            "display": "Wobble"
+          }
         ]
       }
     ],
@@ -995,12 +1082,37 @@
         "parameters": [
           {
             "selector": "Band Select",
-            "values": ["1", "2", "3", "4", "5", "6", "7", "8"],
+            "values": [
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8"
+            ],
             "view_property": "selected_band",
-            "template": ["{} Filter On A", "{} Filter Type A", "{} Frequency A", "{} Gain A", "{} Q A"],
-            "display": ["{} On", "{} Type", "{} Freq", "{} Gain", "{} Q"]
+            "template": [
+              "{} Filter On A",
+              "{} Filter Type A",
+              "{} Frequency A",
+              "{} Gain A",
+              "{} Q A"
+            ],
+            "display": [
+              "{} On",
+              "{} Type",
+              "{} Freq",
+              "{} Gain",
+              "{} Q"
+            ]
           },
-          null, null, null, null, null,
+          null,
+          null,
+          null,
+          null,
+          null,
           "Output",
           "Scale"
         ]
@@ -1010,16 +1122,45 @@
         "parameters": [
           {
             "selector": "Band B",
-            "values": ["1", "2", "3", "4", "5", "6", "7", "8"],
+            "values": [
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8"
+            ],
             "view_property": "selected_band",
-            "template": ["{} Filter On B", "{} Filter Type B", "{} Frequency B", "{} Gain B", "{} Q B"],
-            "display": ["{} On", "{} Type", "{} Freq", "{} Gain", "{} Q"]
+            "template": [
+              "{} Filter On B",
+              "{} Filter Type B",
+              "{} Frequency B",
+              "{} Gain B",
+              "{} Q B"
+            ],
+            "display": [
+              "{} On",
+              "{} Type",
+              "{} Freq",
+              "{} Gain",
+              "{} Q"
+            ]
           },
-          null, null, null, null, null,
+          null,
+          null,
+          null,
+          null,
+          null,
           "Adaptive Q",
           {
             "selector": "Mode",
-            "values": ["Stereo", "L/R", "M/S"],
+            "values": [
+              "Stereo",
+              "L/R",
+              "M/S"
+            ],
             "device_property": "global_mode"
           }
         ]
@@ -1028,7 +1169,6 @@
     "category": "audio_effects",
     "display_name": "EQ Eight"
   },
-
   "Erosion2": {
     "banks": [
       {
@@ -1055,11 +1195,37 @@
         "parameters": [
           {
             "selector": "L|LR|R",
-            "values": ["1", "2", "3"],
-            "template": ["{} Input On", "{} Filter On", "{} Filter Freq", "{} Filter Width", "{} Feedback", "{} Pan", "{} Volume"],
-            "display": ["Input", "Filt On", "Freq", "Width", "Feedb", "Pan", "Vol"]
+            "values": [
+              "1",
+              "2",
+              "3"
+            ],
+            "template": [
+              "{} Input On",
+              "{} Filter On",
+              "{} Filter Freq",
+              "{} Filter Width",
+              "{} Feedback",
+              "{} Pan",
+              "{} Volume"
+            ],
+            "display": [
+              "Input",
+              "Filt On",
+              "Freq",
+              "Width",
+              "Feedb",
+              "Pan",
+              "Vol"
+            ]
           },
-          null, null, null, null, null, null, null
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
         ]
       },
       {
@@ -1067,11 +1233,31 @@
         "parameters": [
           {
             "selector": "L|LR|R",
-            "values": ["1", "2", "3"],
-            "template": ["{} Delay Mode", "{} Beat Delay", "{} Beat Swing", "{} Time Delay", "{} Volume"],
-            "display": ["Sync", "Beat", "Swing", "Time", "Vol"]
+            "values": [
+              "1",
+              "2",
+              "3"
+            ],
+            "template": [
+              "{} Delay Mode",
+              "{} Beat Delay",
+              "{} Beat Swing",
+              "{} Time Delay",
+              "{} Volume"
+            ],
+            "display": [
+              "Sync",
+              "Beat",
+              "Swing",
+              "Time",
+              "Vol"
+            ]
           },
-          null, null, null, null, null,
+          null,
+          null,
+          null,
+          null,
+          null,
           "Dry",
           null
         ]
@@ -1537,8 +1723,19 @@
         "parameters": [
           {
             "selector": "Engine",
-            "values": ["A", "B"],
-            "template": ["{} Osc Type", "{} Osc Shape", "{} Osc Tone", "{} On", "{} Octave", "{} Detune", "{} Volume"]
+            "values": [
+              "A",
+              "B"
+            ],
+            "template": [
+              "{} Osc Type",
+              "{} Osc Shape",
+              "{} Osc Tone",
+              "{} On",
+              "{} Octave",
+              "{} Detune",
+              "{} Volume"
+            ]
           }
         ]
       },
@@ -1547,8 +1744,19 @@
         "parameters": [
           {
             "selector": "Engine",
-            "values": ["A", "B"],
-            "template": ["{} Filter On", "{} Filter Type", "{} Filter Freq", "{} Filter Q", "{} Filter L-B-H-N", "{} Tone Filter", "{} Pan"]
+            "values": [
+              "A",
+              "B"
+            ],
+            "template": [
+              "{} Filter On",
+              "{} Filter Type",
+              "{} Filter Freq",
+              "{} Filter Q",
+              "{} Filter L-B-H-N",
+              "{} Tone Filter",
+              "{} Pan"
+            ]
           }
         ]
       },
@@ -1557,8 +1765,19 @@
         "parameters": [
           {
             "selector": "Engine",
-            "values": ["A", "B"],
-            "template": ["{} Amp Attack", "{} Amp Decay", "{} Amp Sustain", "{} Amp Release", "{} Amp Loop Mode", "{} Glide Time", "{} Volume"]
+            "values": [
+              "A",
+              "B"
+            ],
+            "template": [
+              "{} Amp Attack",
+              "{} Amp Decay",
+              "{} Amp Sustain",
+              "{} Amp Release",
+              "{} Amp Loop Mode",
+              "{} Glide Time",
+              "{} Volume"
+            ]
           }
         ]
       },
@@ -1567,8 +1786,19 @@
         "parameters": [
           {
             "selector": "Engine",
-            "values": ["A", "B"],
-            "template": ["{} Mod Attack", "{} Mod Decay", "{} Mod Sustain", "{} Mod Release", "{} Mod Peak", "{} Mod Initial", "{} Mod Final"]
+            "values": [
+              "A",
+              "B"
+            ],
+            "template": [
+              "{} Mod Attack",
+              "{} Mod Decay",
+              "{} Mod Sustain",
+              "{} Mod Release",
+              "{} Mod Peak",
+              "{} Mod Initial",
+              "{} Mod Final"
+            ]
           }
         ]
       },
@@ -1577,8 +1807,19 @@
         "parameters": [
           {
             "selector": "Engine",
-            "values": ["A", "B"],
-            "template": ["{} LFO 1 Type", "{} LFO 1 Rate", "{} LFO 1 Shape", "{} LFO 1 Fold", "{} LFO 1 Sync", "{} LFO 1 Phase", "{} LFO 1 Retrigger"]
+            "values": [
+              "A",
+              "B"
+            ],
+            "template": [
+              "{} LFO 1 Type",
+              "{} LFO 1 Rate",
+              "{} LFO 1 Shape",
+              "{} LFO 1 Fold",
+              "{} LFO 1 Sync",
+              "{} LFO 1 Phase",
+              "{} LFO 1 Retrigger"
+            ]
           }
         ]
       },
@@ -1587,8 +1828,19 @@
         "parameters": [
           {
             "selector": "Engine",
-            "values": ["A", "B"],
-            "template": ["{} LFO 2 Waveform", "{} LFO 2 Rate", "{} LFO 2 Sync", "{} LFO 2 Retrigger", "{} LFO 2 Phase Offset", "Voice Spread", "Volume"]
+            "values": [
+              "A",
+              "B"
+            ],
+            "template": [
+              "{} LFO 2 Waveform",
+              "{} LFO 2 Rate",
+              "{} LFO 2 Sync",
+              "{} LFO 2 Retrigger",
+              "{} LFO 2 Phase Offset",
+              "Voice Spread",
+              "Volume"
+            ]
           }
         ]
       },
@@ -1629,8 +1881,19 @@
         "parameters": [
           {
             "selector": "Osc",
-            "values": ["1", "2"],
-            "template": ["Osc {} Transp", "Osc {} Detune", "Osc {} Pos", "Osc {} Effect 1", "Osc {} Effect 2", "Osc {} Pan", "Osc {} Gain"]
+            "values": [
+              "1",
+              "2"
+            ],
+            "template": [
+              "Osc {} Transp",
+              "Osc {} Detune",
+              "Osc {} Pos",
+              "Osc {} Effect 1",
+              "Osc {} Effect 2",
+              "Osc {} Pan",
+              "Osc {} Gain"
+            ]
           }
         ]
       },
@@ -1639,8 +1902,19 @@
         "parameters": [
           {
             "selector": "Flt",
-            "values": ["1", "2"],
-            "template": ["Flt {} On", "Flt {} Freq", "Flt {} Res", "Flt {} Drive", "Flt {} Type", "Flt {} Slope", "Flt {} BP/NO/MO"]
+            "values": [
+              "1",
+              "2"
+            ],
+            "template": [
+              "Flt {} On",
+              "Flt {} Freq",
+              "Flt {} Res",
+              "Flt {} Drive",
+              "Flt {} Type",
+              "Flt {} Slope",
+              "Flt {} BP/NO/MO"
+            ]
           }
         ]
       },
@@ -1675,8 +1949,17 @@
         "parameters": [
           {
             "selector": "LFO",
-            "values": ["1", "2"],
-            "template": ["LFO {} Amount", "LFO {} Shape", "LFO {} Sync", "LFO {} Rate", "LFO {} S. Rate"]
+            "values": [
+              "1",
+              "2"
+            ],
+            "template": [
+              "LFO {} Amount",
+              "LFO {} Shape",
+              "LFO {} Sync",
+              "LFO {} Rate",
+              "LFO {} S. Rate"
+            ]
           },
           "Global Mod Amount",
           "Volume"
@@ -2811,8 +3094,22 @@
         "parameters": [
           {
             "selector": "Selector",
-            "values": ["I", "II", "III", "IV", "V"],
-            "template": ["{} On", "{} Note", "{} Pitch", "{} Tune", "{} Gain", "Const", "Output"]
+            "values": [
+              "I",
+              "II",
+              "III",
+              "IV",
+              "V"
+            ],
+            "template": [
+              "{} On",
+              "{} Note",
+              "{} Pitch",
+              "{} Tune",
+              "{} Gain",
+              "Const",
+              "Output"
+            ]
           }
         ]
       }
@@ -2874,8 +3171,20 @@
         "parameters": [
           {
             "selector": "Stage",
-            "values": ["1", "2", "3"],
-            "template": ["Stage {} On", "Shaper {} Type", "Shaper {} Amt", "Shaper {} Bias", "Shaper {} Level", "Flt {} Type", "Flt {} Freq"]
+            "values": [
+              "1",
+              "2",
+              "3"
+            ],
+            "template": [
+              "Stage {} On",
+              "Shaper {} Type",
+              "Shaper {} Amt",
+              "Shaper {} Bias",
+              "Shaper {} Level",
+              "Flt {} Type",
+              "Flt {} Freq"
+            ]
           }
         ]
       },
@@ -2884,8 +3193,20 @@
         "parameters": [
           {
             "selector": "Filter",
-            "values": ["1", "2", "3"],
-            "template": ["Flt {} On", "Flt {} Type", "Flt {} Freq", "Flt {} Res", "Flt {} Morph", "Flt {} Peak", "Flt {} Pre On"]
+            "values": [
+              "1",
+              "2",
+              "3"
+            ],
+            "template": [
+              "Flt {} On",
+              "Flt {} Type",
+              "Flt {} Freq",
+              "Flt {} Res",
+              "Flt {} Morph",
+              "Flt {} Peak",
+              "Flt {} Pre On"
+            ]
           }
         ]
       },
@@ -2917,8 +3238,19 @@
         "parameters": [
           {
             "selector": "LFO",
-            "values": ["1", "2"],
-            "template": ["LFO {} Rate Mode", "LFO {} Rate", "LFO {} Synced Rate", "LFO {} Wave", "LFO {} Morph", "LFO {} Smooth", "Global Mod Amt"]
+            "values": [
+              "1",
+              "2"
+            ],
+            "template": [
+              "LFO {} Rate Mode",
+              "LFO {} Rate",
+              "LFO {} Synced Rate",
+              "LFO {} Wave",
+              "LFO {} Morph",
+              "LFO {} Smooth",
+              "Global Mod Amt"
+            ]
           }
         ]
       },
@@ -2980,18 +3312,36 @@
             "watch": "Mode",
             "display": "Coarse",
             "map": {
-              "Pitch": {"name": "Pitch Coarse", "display": "Coarse"},
-              "Freq": {"name": "FShift Coarse", "display": "Coarse"},
-              "Ring": {"name": "RM Coarse", "display": "Coarse"}
+              "Pitch": {
+                "name": "Pitch Coarse",
+                "display": "Coarse"
+              },
+              "Freq": {
+                "name": "FShift Coarse",
+                "display": "Coarse"
+              },
+              "Ring": {
+                "name": "RM Coarse",
+                "display": "Coarse"
+              }
             }
           },
           {
             "watch": "Mode",
             "display": "Amount",
             "map": {
-              "Pitch": {"name": "Lfo Amount St", "display": "Amount"},
-              "Freq": {"name": "Lfo Amount Hz", "display": "Amount"},
-              "Ring": {"name": "Lfo Amount Hz", "display": "Amount"}
+              "Pitch": {
+                "name": "Lfo Amount St",
+                "display": "Amount"
+              },
+              "Freq": {
+                "name": "Lfo Amount Hz",
+                "display": "Amount"
+              },
+              "Ring": {
+                "name": "Lfo Amount Hz",
+                "display": "Amount"
+              }
             }
           },
           {
@@ -3003,8 +3353,14 @@
             "watch": "Lfo Sync",
             "display": "Rate",
             "map": {
-              "On": {"name": "Lfo S. Rate", "display": "Rate"},
-              "*": {"name": "Lfo Rate Hz", "display": "Rate"}
+              "On": {
+                "name": "Lfo S. Rate",
+                "display": "Rate"
+              },
+              "*": {
+                "name": "Lfo Rate Hz",
+                "display": "Rate"
+              }
             }
           },
           "Wide",
@@ -3025,9 +3381,18 @@
             "watch": "Delay Mode",
             "display": "Del Time",
             "map": {
-              "Time": {"name": "Delay Time", "display": "Del Time"},
-              "Synced": {"name": "Delay Synced", "display": "Del Sync"},
-              "*": {"name": "Delay 16th", "display": "Del 16th"}
+              "Time": {
+                "name": "Delay Time",
+                "display": "Del Time"
+              },
+              "Synced": {
+                "name": "Delay Synced",
+                "display": "Del Sync"
+              },
+              "*": {
+                "name": "Delay 16th",
+                "display": "Del 16th"
+              }
             }
           },
           {
@@ -3072,7 +3437,7 @@
           "Left Inv",
           "Right Inv",
           "Channel Mode",
-          null,
+          "Gain",
           "Mono",
           "Balance",
           null,
@@ -3379,19 +3744,23 @@
           "AMP1 Level",
           "AMP1 Pan",
           "LFO1 Shape",
-         {"watch": "LFO1 Sync",
-          "map": {
-            "Beat": "LFO1 SncRate",
-            "Hertz": "LFO1 Speed"
-          }},
+          {
+            "watch": "LFO1 Sync",
+            "map": {
+              "Beat": "LFO1 SncRate",
+              "Hertz": "LFO1 Speed"
+            }
+          },
           "AMP2 Level",
           "AMP2 Pan",
           "LFO2 Shape",
-         {"watch": "LFO2 Sync",
-          "map": {
-            "Beat": "LFO2 SncRate",
-            "Hertz": "LFO2 Speed"
-          }}
+          {
+            "watch": "LFO2 Sync",
+            "map": {
+              "Beat": "LFO2 SncRate",
+              "Hertz": "LFO2 Speed"
+            }
+          }
         ]
       },
       {

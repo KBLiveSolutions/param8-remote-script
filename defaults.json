@@ -3414,7 +3414,7 @@
           "Left Inv",
           "Right Inv",
           "Channel Mode",
-          null,
+          "Gain",
           "Mono",
           "Balance",
           null,
