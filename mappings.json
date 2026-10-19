@@ -57,15 +57,15 @@
           "LFO Wave",
           "LFO Amount",
           {
-            "watch": "LFO T Mode",
+            "watch": "LFO Mode",
             "map": {
               "Rate": "LFO Freq",
               "Time": "LFO Time",
               "Sixteenth": "LFO 16th",
-              "*": "LFO Rate"
+              "*": "LFO Freq"
             }
           },
-          "Dry/Wet"
+          "Circuit"
         ]
       }
     ],
@@ -950,7 +950,8 @@
               },
               "On": {
                 "name": "L Synced",
-                "display": "L Synced"
+                "display": "L Synced",
+                "quantized": 9
               },
               "*": "L Time"
             }
@@ -978,7 +979,6 @@
       {
         "name": "R/Side",
         "parameters": [
-          "Link",
           "R Sync",
           {
             "watch": "R Sync",
@@ -989,7 +989,8 @@
               },
               "On": {
                 "name": "R Synced",
-                "display": "R Synced"
+                "display": "R Synced",
+                "quantized": 9
               },
               "*": "R Time"
             }
@@ -1007,6 +1008,7 @@
               }
             }
           },
+          "Link",
           "FB Invert",
           "Input Gain",
           "Output",
@@ -1336,9 +1338,18 @@
         "name": "Compression",
         "parameters": [
           "Threshold",
-          "Ratio",
-          "Attack",
-          "Release",
+          {
+            "name": "Ratio",
+            "quantized": 3
+          },
+          {
+            "name": "Attack",
+            "quantized": 6
+          },
+          {
+            "name": "Release",
+            "quantized": 8
+          },
           "Peak Clip In",
           "Range",
           "Output",

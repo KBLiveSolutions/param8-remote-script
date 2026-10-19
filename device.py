@@ -52,6 +52,7 @@ def _resolve_custom_banks(device, mapping_entry, saved_index=None):
         param_by_name[p.name] = p
     banks = []
     custom_display = {}
+    custom_quantized = {}
     conditionals = {}
     selectors = {}
     for bank_idx, bank_def in enumerate(mapping_entry.get("banks", [])):
@@ -104,6 +105,8 @@ def _resolve_custom_banks(device, mapping_entry, saved_index=None):
                                 resolved_names[v] = pname
                                 if pn.get("display"):
                                     resolved_displays[v] = pn["display"]
+                                if pname and pn.get("quantized"):
+                                    custom_quantized[pname] = pn["quantized"]
                             elif pn:
                                 resolved_map[v] = param_by_name.get(pn)
                                 resolved_names[v] = pn
@@ -126,8 +129,11 @@ def _resolve_custom_banks(device, mapping_entry, saved_index=None):
                 else:
                     name = slot.get("name", "")
                     disp = slot.get("display", "")
+                    q = slot.get("quantized", 0)
                     if name and disp:
                         custom_display[name] = disp
+                    if name and q:
+                        custom_quantized[name] = q
                     bank.append(param_by_name.get(name) if name else None)
             elif slot:
                 bank.append(param_by_name.get(slot))
@@ -136,7 +142,7 @@ def _resolve_custom_banks(device, mapping_entry, saved_index=None):
         while len(bank) < 8:
             bank.append(None)
         banks.append(bank)
-    return banks if banks else None, custom_display, conditionals, selectors
+    return banks if banks else None, custom_display, custom_quantized, conditionals, selectors
 from ableton.v2.base import EventObject, clamp, depends, listens, liveobj_valid, nop, listens_group
 from ableton.v2.control_surface import Component
 from ableton.v2.control_surface.control import ToggleButtonControl, control_list, ButtonControl
@@ -231,6 +237,7 @@ class SimpleDeviceParameterComponent(Component):
         self._bank_index = 0
         self._custom_bank_names = None
         self._custom_display_names = {}
+        self._custom_quantized_counts = {}
         self._conditionals = {}
         self._selectors = {}
         self._selector_saved_index = {}
@@ -464,10 +471,14 @@ class SimpleDeviceParameterComponent(Component):
         self._device = self._device_provider.device
         self._SimpleDeviceParameterComponent__on_parameters_changed.subject = self._device
         self._SimpleDeviceParameterComponent__on_bank_changed.subject = self._device_bank_registry
-        self._on_compare_changed.subject = self._device if liveobj_valid(self._device) else None
+        compare_subject = self._device if liveobj_valid(self._device) and hasattr(self._device, 'add_is_using_compare_preset_b_listener') else None
+        self._on_compare_changed.subject = compare_subject
         self._device_on_param = None
         self._selector_saved_index = {}
         if liveobj_valid(self._device):
+            print("param8: === %s ===" % self._device.class_name)
+            for p in self._device.parameters[1:]:
+                print("param8:   is_q=%-5s  %s" % (p.is_quantized, p.name))
             for p in self._device.parameters:
                 if p.name == 'Device On':
                     self._device_on_param = p
@@ -625,7 +636,9 @@ class SimpleDeviceParameterComponent(Component):
                                 items = list(parameter.value_items)
                                 num_q = min(len(items), 127) if len(items) >= 2 else 0
                             except (RuntimeError, AttributeError):
-                                num_q = 0
+                                num_q = self._custom_quantized_counts.get(parameter.name, 0)
+                            if num_q:
+                                print("param8 q: [%s] = %d" % (parameter.name, num_q))
                             self._parent.send_display(PARAM_QUANTIZED, i, "", num_q)
                     else:
                         control.release_parameter()
@@ -654,16 +667,18 @@ class SimpleDeviceParameterComponent(Component):
         custom_mappings = _load_custom_mappings()
         custom_entry = custom_mappings.get(device.class_name)
         if custom_entry:
-            custom_banks, custom_display, conditionals, selectors = _resolve_custom_banks(device, custom_entry, self._selector_saved_index)
+            custom_banks, custom_display, custom_quantized, conditionals, selectors = _resolve_custom_banks(device, custom_entry, self._selector_saved_index)
             if custom_banks:
                 self._banks = custom_banks
                 self._custom_bank_names = [b.get("name", "Bank %d" % (i+1)) for i, b in enumerate(custom_entry.get("banks", []))]
                 self._custom_display_names = custom_display
+                self._custom_quantized_counts = custom_quantized
                 self._conditionals = conditionals
                 self._selectors = selectors
                 return
         self._custom_bank_names = None
         self._custom_display_names = {}
+        self._custom_quantized_counts = {}
         self._conditionals = {}
         self._selectors = {}
         auto = _auto_banks(device)
