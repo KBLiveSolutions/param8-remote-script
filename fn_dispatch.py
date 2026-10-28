@@ -11,7 +11,8 @@ class FnDispatchMixin:
     # fnIds 48-55 → remapped to CCs 40-47 (offset -8) → fall through to MixerComponent.
     # fnIds 1,9,10,19,32,33,34,35 → remapped to CCs 52,50,56,53,54,55,51,57 → handled here.
     _ENCODER_FN_IDS = {
-        51, 52, 53, 56, 57,           # Scroll Scenes, Track Vol, Track Pan, Groove, Track Sel
+        # fn_ids 48-55 remap to CC 40-47 → handled by registered EncoderElements, NOT here
+        56, 57,                       # Groove, Track Select (CC unchanged, no -8)
         58, 59, 60, 61, 62,           # Select Preset, Loop Pos, Loop Len, H.Zoom, Jump Mkr
         *range(64, 76),               # Sends A-L
         *range(80, 112),              # Device Params 1-32
@@ -153,7 +154,7 @@ class FnDispatchMixin:
             # 28 (Bank-), 29 (Bank+), 30 (Preset-), 31 (Preset+) not yet implemented
             # Device
             # 36-40 (Variations, Randomize) not yet implemented
-            # Global-mode remapped buttons (fnIdToGlobalCC output)
+            # Global-mode remapped buttons (fnIdToGlobalCC → CCs 50-57)
             elif fn_id == 50: song.metronome = not song.metronome
             elif fn_id == 51:
                 t = song.view.selected_track
@@ -168,5 +169,7 @@ class FnDispatchMixin:
                 if liveobj_valid(t) and hasattr(t, 'solo'): t.solo = not t.solo
             elif fn_id == 56: song.loop = not song.loop
             # 57 (Return to Default) not yet implemented
+            # Note: 51/52/53/56/57 only reach here when NOT in _fn_fader_map
+            # (i.e. no encoder with that fnId in the current preset)
         except Exception as e:
             print(f"fn_btn dispatch fn_id={fn_id}: {e}")

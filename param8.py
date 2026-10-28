@@ -395,7 +395,7 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
                             enc.mapping_sensitivity = sens
                     return
                 if self.active_mode < 25:
-                    if cc in self._ENCODER_FN_IDS:
+                    if cc in self._ENCODER_FN_IDS and cc in self._fn_fader_map:
                         self._dispatch_fn_encoder(cc, val)
                         return
                     if cc in self._BUTTON_FN_IDS:
