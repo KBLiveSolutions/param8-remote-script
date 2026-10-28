@@ -9,10 +9,9 @@ def print(text):
 
 class FnDispatchMixin:
     # fnIds 48-55 → remapped to CCs 40-47 (offset -8) → fall through to MixerComponent.
-    # fnIds 1,9,10,19,32,33,34,35 → remapped to CCs 52,50,56,53,54,55,51,57 → handled here.
+    # fnIds 1,9,10,19,32,33,34,35 → remapped to CCs 52,50,56,53,54,55,51,57 → fall through.
     _ENCODER_FN_IDS = {
-        # fn_ids 48-55 remap to CC 40-47 → handled by registered EncoderElements, NOT here
-        56, 57,                       # Groove, Track Select (CC unchanged, no -8)
+        51, 52, 53, 56, 57,           # Scroll Scenes, Track Vol, Track Pan, Groove, Track Sel
         58, 59, 60, 61, 62,           # Select Preset, Loop Pos, Loop Len, H.Zoom, Jump Mkr
         *range(64, 76),               # Sends A-L
         *range(80, 112),              # Device Params 1-32
@@ -23,8 +22,6 @@ class FnDispatchMixin:
         20, 21, 22, 23,               # Session
         24, 25, 26, 27, 28, 29, 30, 31,  # Navigation
         36, 37, 38, 39, 40,           # Variations + Randomize
-        # Global-mode remapped CCs (fnIdToGlobalCC output for 1,9,10,19,32,33,34,35)
-        50, 51, 52, 53, 54, 55, 56, 57,
     }
 
     def _dispatch_fn_encoder(self, fn_id, val):
@@ -154,22 +151,5 @@ class FnDispatchMixin:
             # 28 (Bank-), 29 (Bank+), 30 (Preset-), 31 (Preset+) not yet implemented
             # Device
             # 36-40 (Variations, Randomize) not yet implemented
-            # Global-mode remapped buttons (fnIdToGlobalCC → CCs 50-57)
-            elif fn_id == 50: song.metronome = not song.metronome
-            elif fn_id == 51:
-                t = song.view.selected_track
-                if liveobj_valid(t) and hasattr(t, 'arm'): t.arm = not t.arm
-            elif fn_id == 52: song.start_playing()
-            elif fn_id == 53: song.view.selected_scene.fire()
-            elif fn_id == 54:
-                t = song.view.selected_track
-                if liveobj_valid(t) and hasattr(t, 'mute'): t.mute = not t.mute
-            elif fn_id == 55:
-                t = song.view.selected_track
-                if liveobj_valid(t) and hasattr(t, 'solo'): t.solo = not t.solo
-            elif fn_id == 56: song.loop = not song.loop
-            # 57 (Return to Default) not yet implemented
-            # Note: 51/52/53/56/57 only reach here when NOT in _fn_fader_map
-            # (i.e. no encoder with that fnId in the current preset)
         except Exception as e:
             print(f"fn_btn dispatch fn_id={fn_id}: {e}")

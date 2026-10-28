@@ -37,13 +37,30 @@ def print(text):
 
 
 button_actions = {
+    "Shift": 20,
     "BankUp": 27,
     "BankDown": 26,
     "DeviceUp": 25,
     "DeviceDown": 24,
+    "Prev Device": 33,
+    "Next Device": 32,
+    "TrackDown": 20,
+    "TrackUp": 21,
+    "SendsDown": 56,
+    "SendsUp": 57,
+    "Metronome": 50,
+    "Mute": 54,
+    "Solo": 55,
+    "Launch_Scene": 53,
+    "Record": 51,
+    "Play": 52,
+    "Loop": 56,
+    "Default": 57,
     "A/B": 23,
     "Hotswap": 22,
-}
+  }
+led_actions = {
+  }
 slider_actions = {    
     "Device_Encoder_1": 10,
     "Device_Encoder_2": 11,
@@ -267,12 +284,24 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
         self._mixer.layer = Layer(
             Master_Volume=self.encoders["Master_Volume"],
             Cue_Volume=self.encoders["Cue_Volume"],
-            Track_Volume=self.encoders["Track Volume"],
-            Track_Pan=self.encoders["Track Pan"],
+            Track_Volume= self.encoders["Track Volume"],
+            Track_Pan= self.encoders["Track Pan"],
             Selected_Parameter=self.encoders["Selected Parameter"],
             Song_Position=self.encoders["Song Position"],
+            next_track_button=self.buttons["TrackUp"],
+            prev_track_button=self.buttons["TrackDown"],
+            next_sends_button=self.buttons["SendsUp"],
+            prev_sends_button=self.buttons["SendsDown"],
             tempo=self.encoders["Tempo"],
             scene_select=self.encoders["Scene_Select"],
+            Mute=self.buttons["Mute"],
+            Solo=self.buttons["Solo"],
+            Record=self.buttons["Record"],
+            Play=self.buttons["Play"],
+            Loop=self.buttons["Loop"],
+            Launch_Scene=self.buttons["Launch_Scene"],
+            Default=self.buttons["Default"],
+            Metronome=self.buttons["Metronome"],
         )
         self._mixer.set_parent(self)
 
@@ -395,7 +424,7 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
                             enc.mapping_sensitivity = sens
                     return
                 if self.active_mode < 25:
-                    if cc in self._ENCODER_FN_IDS and cc in self._fn_fader_map:
+                    if cc in self._ENCODER_FN_IDS:
                         self._dispatch_fn_encoder(cc, val)
                         return
                     if cc in self._BUTTON_FN_IDS:
