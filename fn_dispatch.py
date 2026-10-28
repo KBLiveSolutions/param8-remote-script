@@ -21,7 +21,7 @@ class FnDispatchMixin:
         11, 12, 13, 14, 15, 16, 17, 18,  # Arrangement
         20, 21, 22, 23,               # Session
         24, 25, 26, 27, 28, 29, 30, 31,  # Navigation
-        36, 37, 38, 39, 40,           # Variations + Randomize
+        36, 37, 38, 39,               # Variations (Randomize fn_id 40 omitted: CC 40 = Master Vol encoder)
     }
 
     def _dispatch_fn_encoder(self, fn_id, val):
