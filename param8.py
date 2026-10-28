@@ -92,6 +92,7 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
         self._instance_id = _instances.index(self)
         super(param8, self).__init__(*a, **k)
         print("====================================")
+        print(f"param8 DEBUG-BUILD v2 INSTANCE_ID={self._instance_id}")
         print(f"param8 INSTANCE_ID={self._instance_id}  (all instances: {len(_instances)})  -> will default to bank {self._instance_id}")
         self._last_sent_layout_byte = None
         self._skin = make_default_skin()
@@ -386,23 +387,20 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
                 print(f"=== PRESET SYSEX received: {midi_bytes[3]} ===")
                 self.active_mode = midi_bytes[3]
                 self._fn_fader_map = {}
-                self._mixer.mixer_control_enabled = False
                 self._device_parameters.device_control_enabled = False
                 if self.active_mode == 25:
                     self._device_parameters.device_control_enabled = True
                     self._device_parameters._update_parameter_banks()
                     self._device_parameters.update()
                     self._send_track_name()
-                elif self.active_mode == 24:
-                    self._mixer.mixer_control_enabled = True
-                    self._mixer.update_component()
-                    self.schedule_message(5, self._mixer._send_all_value_displays)
-                else:
+                else:  # presets 0-24
                     self._send_midi((0xF0, 0x6F, 0x07, self.active_mode, 0xF7))
                     self._device_parameters.look_for_param8_device(self.active_mode)
                     self.request_rebuild_midi_map()
                     self._device_parameters.update()
-                    self._send_preset_names(self.active_mode)
+                    if self.active_mode < 24:
+                        self._send_preset_names(self.active_mode)
+                    self.schedule_message(10, self._mixer.update_component)
 
 
     def process_midi_bytes(self, midi_bytes, midi_processor):
@@ -412,6 +410,8 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
         if len(midi_bytes) >= 3:
             status = midi_bytes[0] & 0xF0
             channel = midi_bytes[0] & 0x0F
+            if status == 0xB0:
+                print(f"DEBUG CC{midi_bytes[1]} ch{channel} val{midi_bytes[2]} mode={self.active_mode} in_fn={midi_bytes[1] in self._ENCODER_FN_IDS}")
             if status == 0xB0 and channel == MIDI_CHANNEL:
                 cc = midi_bytes[1]
                 val = midi_bytes[2]
@@ -423,7 +423,7 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
                         for enc in self.parameter_controls_raw:
                             enc.mapping_sensitivity = sens
                     return
-                if self.active_mode < 24:
+                if self.active_mode < 25:
                     if cc in self._ENCODER_FN_IDS:
                         self._dispatch_fn_encoder(cc, val)
                         return

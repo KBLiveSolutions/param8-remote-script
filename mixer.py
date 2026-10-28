@@ -65,7 +65,6 @@ class MixerComponent(MixerComponentBase):
     def __init__(self, *a, **k):
         self._parent = None
         self._selected_track = None
-        self.mixer_control_enabled = False
         self._sync_callback = None
         self._last_sync_beat = -1
 
@@ -86,31 +85,19 @@ class MixerComponent(MixerComponentBase):
 
     @listens('is_playing')
     def _on_playing_state_changed(self):
-        is_playing = self.song.is_playing
-        self.Play.is_toggled = is_playing
-        if self.mixer_control_enabled:
-            print(f"Playing state changed: {is_playing}")
+        self.Play.is_toggled = self.song.is_playing
 
     @listens('record_mode')
     def _on_record_mode_changed(self):
-        is_armed = self.song.record_mode
-        self.Record.is_toggled = is_armed
-        if self.mixer_control_enabled:
-            print(f"Record mode changed: {is_armed}")
+        self.Record.is_toggled = self.song.record_mode
 
     @listens('loop')
     def _on_loop_changed(self):
-        is_looping = self.song.loop
-        self.Loop.is_toggled = is_looping
-        if self.mixer_control_enabled:
-            print(f"Loop changed: {is_looping}")
+        self.Loop.is_toggled = self.song.loop
 
     @listens('metronome')
     def _on_metronome_changed(self):
-        is_metronome_on = self.song.metronome
-        self.Metronome.is_toggled = is_metronome_on
-        if self.mixer_control_enabled:
-            print(f"Metronome changed: {is_metronome_on}")
+        self.Metronome.is_toggled = self.song.metronome
 
     @listens('current_song_time')
     def _on_song_position_changed(self):
@@ -125,42 +112,30 @@ class MixerComponent(MixerComponentBase):
         except Exception as e:
             print(f"_on_song_position_changed sync error: {e}")
 
-        if self.mixer_control_enabled:
-            current_pos = self.song.current_song_time
-            song_length = self.song.song_length
-            ratio = (current_pos / song_length) if song_length > 0 else 0.0
-            print(f"Current Song Position: {current_pos:.2f}, Song Length: {song_length:.2f}, Ratio: {ratio:.2f}")
-            midi_value = int(ratio * 127)
-            self.Song_Position.send_value(midi_value)
+        song_length = self.song.song_length
+        if song_length > 0:
+            ratio = self.song.current_song_time / song_length
             bt = self.song.get_current_beats_song_time()
-            self.send_display(PARAM_VALUE, 6, f"{bt.bars}.{bt.beats}.{bt.sub_division}")
+            self._try_send_fn_display(54, f"{bt.bars}.{bt.beats}.{bt.sub_division}", ratio * 127)
 
     @listens('selected_parameter')
     def on_selected_parameter_changed(self):
-        if self.mixer_control_enabled:
-            selected_param = self.song.view.selected_parameter
-            if liveobj_valid(selected_param):
-                param_name = selected_param.name
-                param_value = selected_param.str_for_value(selected_param.value)
-                self.send_display(PARAM_NAME, 7, param_name)
-                self.send_display(PARAM_VALUE, 7, param_value)
-                print(f"Selected parameter changed: {param_name} = {param_value}")
-                self.on_parameter_changed.subject = selected_param
-                self.on_parameter_changed()
-            else:
-                self.send_display(PARAM_NAME, 7, "No Param")
-                self.send_display(PARAM_VALUE, 7, "")
-                print("No parameter selected")
+        selected_param = self.song.view.selected_parameter
+        if liveobj_valid(selected_param):
+            r = selected_param.max - selected_param.min
+            cc_val = (selected_param.value - selected_param.min) / r * 127 if r > 0 else 0
+            self._try_send_fn_display(55, selected_param.str_for_value(selected_param.value), cc_val)
+            self.on_parameter_changed.subject = selected_param
+        else:
+            self._try_send_fn_display(55, "No Param")
 
     @listens('value')
     def on_parameter_changed(self):
-        if self.mixer_control_enabled:
-            selected_param = self.song.view.selected_parameter
-            if liveobj_valid(selected_param):
-                param_value = selected_param.str_for_value(selected_param.value)
-                self.send_display(PARAM_VALUE, 7, param_value)
-                self.Selected_Parameter.send_value(int((selected_param.value - selected_param.min) / (selected_param.max - selected_param.min) * 127))
-                print(f"Parameter value changed: {selected_param.name} = {param_value}")
+        selected_param = self.song.view.selected_parameter
+        if liveobj_valid(selected_param):
+            r = selected_param.max - selected_param.min
+            cc_val = (selected_param.value - selected_param.min) / r * 127 if r > 0 else 0
+            self._try_send_fn_display(55, selected_param.str_for_value(selected_param.value), cc_val)
 
     @Selected_Parameter.value
     def on_Selected_Parameter_changed(self, value, button):
@@ -173,9 +148,6 @@ class MixerComponent(MixerComponentBase):
                 sensitivity = (selected_param.max - selected_param.min) / 127.0
             value = self.process_relative_encoder(current_value, value, sensitivity=sensitivity, min_val=selected_param.min, max_val=selected_param.max)
             selected_param.value = value
-            if self.mixer_control_enabled:
-                self.send_display(PARAM_VALUE, 7, selected_param.str_for_value(value))
-                print(f"Selected Parameter changed: {selected_param.name} = {selected_param.str_for_value(value)}")
     
     @Song_Position.value
     def on_Song_Position_changed(self, value, button):
@@ -204,11 +176,9 @@ class MixerComponent(MixerComponentBase):
     @listens("selected_track")
     def _on_selected_track_changed(self):
         selected_track = self.song.view.selected_track
-        if self.mixer_control_enabled:
-            print("Selected track changed")
-            self.send_display(DEVICE_NAME, 0, selected_track.name)
-        else:
-            self._try_send_fn_display(112, selected_track.name)
+        tracks = list(self.song.visible_tracks) + list(self.song.return_tracks) + [self.song.master_track]
+        t_idx = next((i for i, t in enumerate(tracks) if t == selected_track), 0)
+        self._try_send_fn_display(57, selected_track.name, t_idx / max(len(tracks) - 1, 1) * 127)
         self._update_selected_strip()
 
     def _update_selected_strip(self):
@@ -261,21 +231,18 @@ class MixerComponent(MixerComponentBase):
 
     @listens('mute')
     def _on_track_mute_changed(self):
-        if self.mixer_control_enabled and self._selected_track:
+        if self._selected_track:
             self.Mute.is_toggled = self._selected_track.mute
-            print(f"Track Mute changed: {self._selected_track.name} = {self._selected_track.mute}")
 
     @listens('solo')
     def _on_track_solo_changed(self):
-        if self.mixer_control_enabled and self._selected_track:
+        if self._selected_track:
             self.Solo.is_toggled = self._selected_track.solo
-            print(f"Track Solo changed: {self._selected_track.name} = {self._selected_track.solo}")
 
     @listens('arm')
     def _on_track_arm_changed(self):
-        if self.mixer_control_enabled and self._selected_track and self._selected_track.can_be_armed:
+        if self._selected_track and self._selected_track.can_be_armed:
             self.Record.is_toggled = self._selected_track.arm
-            print(f"Track Arm changed: {self._selected_track.name} = {self._selected_track.arm}")
 
     @listens("selected_device")
     def on_selected_device_changed(self):
@@ -323,44 +290,28 @@ class MixerComponent(MixerComponentBase):
         current_value = self.song.master_track.mixer_device.cue_volume.value
         value = self.process_relative_encoder(current_value, value, sensitivity=0.01)
         self.song.master_track.mixer_device.cue_volume.value = value
-        if self.mixer_control_enabled:
-            self.send_display(PARAM_VALUE, 1, self.song.master_track.mixer_device.cue_volume.str_for_value(value))
 
     @Master_Volume.value
     def on_Master_Volume_changed(self, value, button):
         v = self.song.master_track.mixer_device.volume
         value = self.process_relative_encoder(v.value, value, sensitivity=0.01, min_val=v.min, max_val=v.max)
         v.value = value
-        if self.mixer_control_enabled:
-            self.send_display(PARAM_VALUE, 0, v.str_for_value(value))
 
     @Track_Volume.value
     def on_Track_Volume_changed(self, value, button):
-        print(f"Track_Volume changed: {value}")
         if self._selected_track and hasattr(self._selected_track, 'mixer_device'):
-            current_value = self._selected_track.mixer_device.volume.value
-            new_value = self.process_relative_encoder(current_value, value, sensitivity=0.01)
-            new_value = round(new_value, 2)
-            self._selected_track.mixer_device.volume.value = new_value
-            print(f"Track Volume: {current_value:.3f} -> {new_value:.3f}")
-            self.send_display(PARAM_VALUE, 4, self._selected_track.mixer_device.volume.str_for_value(new_value))
+            v = self._selected_track.mixer_device.volume
+            v.value = self.process_relative_encoder(v.value, value, sensitivity=0.01)
 
     @Track_Pan.value
     def on_Track_Pan_changed(self, value, button):
         if self._selected_track and hasattr(self._selected_track, 'mixer_device'):
-            current_value = self._selected_track.mixer_device.panning.value
-            new_value = self.process_relative_encoder(current_value, value, sensitivity=0.015, min_val=-1.0, max_val=1.0)
-            self._selected_track.mixer_device.panning.value = new_value
-            print(f"Track Pan: {current_value:.3f} -> {new_value:.3f}")
-            self.send_display(PARAM_VALUE, 5, self._selected_track.mixer_device.panning.str_for_value(new_value))
-
+            p = self._selected_track.mixer_device.panning
+            p.value = self.process_relative_encoder(p.value, value, sensitivity=0.015, min_val=-1.0, max_val=1.0)
 
     @tempo.value
     def on_Tempo_changed(self, value, button):
-        current_tempo = self.song.tempo
-        new_tempo = self.process_relative_encoder(current_tempo, value, sensitivity=1, min_val=20.0, max_val=300.0)
-        self.song.tempo = new_tempo    
-        self.send_display(PARAM_VALUE, 2, f"{new_tempo:.2f} BPM")
+        self.song.tempo = self.process_relative_encoder(self.song.tempo, value, sensitivity=1, min_val=20.0, max_val=300.0)
 
     @scene_select.value
     def on_Scene_Select_changed(self, value, button):
@@ -441,33 +392,19 @@ class MixerComponent(MixerComponentBase):
     @listens(u'value')
     def on_track_volume_changed(self):
         if self._selected_track and hasattr(self._selected_track, 'mixer_device'):
-            volume = self._selected_track.mixer_device.volume
-            if self.mixer_control_enabled:
-                self.Track_Volume.send_value(int(volume.value * 127))
-                self.send_display(PARAM_VALUE, 4, volume.str_for_value(volume.value))
-            else:
-                self._try_send_fn_display(91, volume.str_for_value(volume.value))
+            v = self._selected_track.mixer_device.volume
+            self._try_send_fn_display(52, v.str_for_value(v.value), v.value * 127)
 
     @listens(u'value')
     def on_track_pan_changed(self):
         if self._selected_track and hasattr(self._selected_track, 'mixer_device'):
-            panning = self._selected_track.mixer_device.panning
-            if self.mixer_control_enabled:
-                self.Track_Pan.send_value(int((panning.value + 1.0) * 63.5))
-                self.send_display(PARAM_VALUE, 5, panning.str_for_value(panning.value))
-            else:
-                self._try_send_fn_display(96, panning.str_for_value(panning.value))
+            p = self._selected_track.mixer_device.panning
+            self._try_send_fn_display(53, p.str_for_value(p.value), (p.value + 1.0) * 63.5)
 
     @listens(u'tempo')
     def on_tempo_changed(self):
-        current_tempo = self.song.tempo
-        v_str = f"{current_tempo:.2f} BPM"
-        if self.mixer_control_enabled:
-            self.tempo.send_value(int((current_tempo - 20.0) / (300.0 - 20.0) * 127))
-            self.send_display(PARAM_VALUE, 2, v_str)
-            print(f"Tempo updated: {current_tempo:.2f} BPM")
-        else:
-            self._try_send_fn_display(87, v_str)
+        t = self.song.tempo
+        self._try_send_fn_display(50, f"{t:.2f} BPM", (t - 20.0) / (300.0 - 20.0) * 127)
 
     @listens(u'selected_scene')
     def _on_selected_scene_changed(self):
@@ -476,46 +413,33 @@ class MixerComponent(MixerComponentBase):
             scenes = list(self.song.scenes)
             idx = scenes.index(scene)
             name = scene.name if scene.name else f"Scene {idx + 1}"
-            if self.mixer_control_enabled:
-                self.scene_select.send_value(int(idx / max(len(scenes) - 1, 1) * 127))
-                self.send_display(PARAM_VALUE, 3, name)
-            else:
-                self._try_send_fn_display(86, name)
+            self._try_send_fn_display(51, name, idx / max(len(scenes) - 1, 1) * 127)
 
     @listens(u'value')
     def on_cue_volume_changed(self):
-        cue_volume = self.song.master_track.mixer_device.cue_volume
-        v_str = cue_volume.str_for_value(cue_volume.value)
-        if self.mixer_control_enabled:
-            self.Cue_Volume.send_value(int(cue_volume.value * 127))
-            self.send_display(PARAM_VALUE, 1, v_str)
-            print(f"Cue Volume updated: {cue_volume.value:.3f}")
-        else:
-            self._try_send_fn_display(90, v_str)
+        v = self.song.master_track.mixer_device.cue_volume
+        self._try_send_fn_display(49, v.str_for_value(v.value), v.value * 127)
 
     @listens(u'value')
     def on_master_volume_changed(self):
-        volume = self.song.master_track.mixer_device.volume
-        v_str = volume.str_for_value(volume.value)
-        if self.mixer_control_enabled:
-            self.Master_Volume.send_value(int(volume.value * 127))
-            self.send_display(PARAM_VALUE, 0, v_str)
-            print(f"Master Volume updated: {volume.value:.3f}")
-        else:
-            self._try_send_fn_display(89, v_str)
+        v = self.song.master_track.mixer_device.volume
+        self._try_send_fn_display(48, v.str_for_value(v.value), v.value * 127)
 
     def send_display(self, param_type, param_index, value):
         if self._parent:
             self._parent.send_display(param_type, param_index, value)
             print(f"Display sent: {param_type}, {param_index}, {value}")
 
-    def _try_send_fn_display(self, fn_id, v_str):
+    def _try_send_fn_display(self, fn_id, v_str, cc_val=None):
         fn_map = getattr(self._parent, '_fn_fader_map', None) if self._parent else None
         if fn_map is None:
             return
         fader_idx = fn_map.get(fn_id)
         if fader_idx is not None:
             self.send_display(PARAM_VALUE, fader_idx, v_str)
+            if cc_val is not None and self._parent:
+                cc = fn_id - 8 if 48 <= fn_id <= 55 else fn_id
+                self._parent._send_midi((0xB0 | 7, cc & 0x7F, min(max(int(cc_val), 0), 127)))
 
     def get_snapshotable_params(self):
         params = [None] * 8
@@ -527,9 +451,26 @@ class MixerComponent(MixerComponentBase):
         params[7] = self.song.view.selected_parameter if liveobj_valid(self.song.view.selected_parameter) else None
         return params
 
+    def _update_fn_sends(self):
+        fn_map = getattr(self._parent, '_fn_fader_map', None) if self._parent else None
+        if fn_map is None:
+            return
+        t = self.song.view.selected_track
+        if not liveobj_valid(t) or not hasattr(t, 'mixer_device'):
+            return
+        sends = t.mixer_device.sends
+        for send_idx in range(12):
+            fn_id = 64 + send_idx
+            if fn_id not in fn_map:
+                continue
+            if send_idx >= len(sends):
+                continue
+            v = sends[send_idx]
+            r = v.max - v.min
+            cc_val = (v.value - v.min) / r * 127 if r > 0 else 0
+            self._try_send_fn_display(fn_id, v.str_for_value(v.value), cc_val)
+
     def update_component(self):
-        print("MixerComponent update_component called")
-        self.set_control_names()
         self._update_selected_strip()
         self.on_cue_volume_changed()
         self.on_master_volume_changed()
@@ -537,17 +478,16 @@ class MixerComponent(MixerComponentBase):
         self._on_selected_scene_changed()
         self.on_track_volume_changed()
         self.on_selected_parameter_changed()
-        self._on_song_position_changed()
         self.on_track_pan_changed()
-        self.on_selected_device_changed()
         self._on_playing_state_changed()
         self._on_record_mode_changed()
         self._on_loop_changed()
         self._on_metronome_changed()
-        self._send_all_value_displays()
+        self._on_selected_track_changed()
+        self._update_fn_sends()
 
     def _send_all_value_displays(self):
-        print(f"=== _send_all_value_displays called, mixer_enabled={self.mixer_control_enabled} ===")
+        print("=== _send_all_value_displays called ===")
         self.send_display(PARAM_VALUE, 0, self.song.master_track.mixer_device.volume.str_for_value(
             self.song.master_track.mixer_device.volume.value))
         self.send_display(PARAM_VALUE, 1, self.song.master_track.mixer_device.cue_volume.str_for_value(
