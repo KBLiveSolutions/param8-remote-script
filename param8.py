@@ -59,7 +59,7 @@ button_actions = {
   }
 led_actions = {
   }
-slider_actions = {    
+slider_actions = {
     "Device_Encoder_1": 10,
     "Device_Encoder_2": 11,
     "Device_Encoder_3": 12,
@@ -76,6 +76,7 @@ slider_actions = {
     "Track Pan": 45,
     "Song Position": 46,
     "Selected Parameter": 47,
+    **{f"Send_{chr(65+i)}": 64 + i for i in range(12)},
   }
 display_actions =  {}
 
@@ -249,6 +250,9 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
         self.parameter_controls_raw = [self.encoders["Device_Encoder_1"], self.encoders["Device_Encoder_2"], self.encoders["Device_Encoder_3"], self.encoders["Device_Encoder_4"], self.encoders["Device_Encoder_5"], self.encoders["Device_Encoder_6"], self.encoders["Device_Encoder_7"], self.encoders["Device_Encoder_8"]]
         self.device_parameter_buttons = ButtonMatrixElement(rows=[self.parameter_controls_raw])
         self.global_param_controls = ButtonMatrixElement(name="Track_Controls", rows=[self.parameter_controls_raw])
+        self.send_matrix = ButtonMatrixElement(
+            rows=[[self.encoders[f"Send_{chr(65+i)}"] for i in range(12)]]
+        )
         self._shift_active = False
 
     def make_button(self, identifier, channel, name, msg_type = MIDI_CC_TYPE, skin = None, is_modifier = False):
@@ -282,8 +286,8 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
         self._mixer.layer = Layer(
             Master_Volume=self.encoders["Master_Volume"],
             Cue_Volume=self.encoders["Cue_Volume"],
-            Track_Volume= self.encoders["Track Volume"],
-            Track_Pan= self.encoders["Track Pan"],
+            Track_Volume=self.encoders["Track Volume"],
+            Track_Pan=self.encoders["Track Pan"],
             Selected_Parameter=self.encoders["Selected Parameter"],
             Song_Position=self.encoders["Song Position"],
             next_track_button=self.buttons["TrackUp"],
@@ -298,6 +302,7 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
             Launch_Scene=self.buttons["Launch_Scene"],
             Default=self.buttons["Default"],
             Metronome=self.buttons["Metronome"],
+            **{f"Send_{chr(65+i)}": self.encoders[f"Send_{chr(65+i)}"] for i in range(12)},
         )
         self._mixer.set_parent(self)
 
@@ -378,6 +383,7 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
                     fn_id = midi_bytes[12]
                     if preset == self.active_mode and is_fn and fader_idx < 8:
                         self._fn_fader_map[fn_id] = fader_idx
+                        self._activate_fn_listener(preset, fader_idx, fn_id)
                 return
             if midi_bytes[2] == 4:
                 print(f"=== PRESET SYSEX received: {midi_bytes[3]} ===")
@@ -427,6 +433,42 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
                         self._dispatch_fn_button(cc, val)
                         return
         super(param8, self).process_midi_bytes(midi_bytes, midi_processor)
+
+    def _get_fn_param(self, fn_id):
+        try:
+            song = self.song
+            track = song.view.selected_track
+            if fn_id == 40: return song.master_track.mixer_device.volume
+            if fn_id == 41: return song.master_track.mixer_device.cue_volume
+            if fn_id == 44 and liveobj_valid(track): return track.mixer_device.volume
+            if fn_id == 45 and liveobj_valid(track): return track.mixer_device.panning
+            if fn_id == 47:
+                p = song.view.selected_parameter
+                return p if liveobj_valid(p) else None
+            if 64 <= fn_id <= 75:
+                if not liveobj_valid(track): return None
+                sends = track.mixer_device.sends
+                i = fn_id - 64
+                return sends[i] if i < len(sends) else None
+            if 80 <= fn_id <= 111:
+                device = song.view.selected_device
+                if liveobj_valid(device):
+                    i = fn_id - 80
+                    params = device.parameters
+                    return params[i + 1] if len(params) > i + 1 else None
+        except Exception as e:
+            print(f"_get_fn_param({fn_id}) error: {e}")
+        return None
+
+    def _activate_fn_listener(self, preset, fader_idx, fn_id):
+        param = self._get_fn_param(fn_id)
+        if param is None:
+            return
+        try:
+            self.send_display(1, fader_idx, param.str_for_value(param.value))
+        except Exception as e:
+            print(f"_activate_fn_listener send_display error: {e}")
+        self._watch_parameter(preset, fader_idx, param)
 
     def _add_control(self, number):
         return ButtonElement(True, MIDI_CC_TYPE, MIDI_CHANNEL, number)

@@ -24,8 +24,18 @@ class MixerComponent(MixerComponentBase):
     Song_Position = SendReceiveValueControl()
     next_track_button = ButtonControl()
     prev_track_button = ButtonControl()
-    next_sends_button = ButtonControl()
-    prev_sends_button = ButtonControl()
+    Send_A = SendReceiveValueControl()
+    Send_B = SendReceiveValueControl()
+    Send_C = SendReceiveValueControl()
+    Send_D = SendReceiveValueControl()
+    Send_E = SendReceiveValueControl()
+    Send_F = SendReceiveValueControl()
+    Send_G = SendReceiveValueControl()
+    Send_H = SendReceiveValueControl()
+    Send_I = SendReceiveValueControl()
+    Send_J = SendReceiveValueControl()
+    Send_K = SendReceiveValueControl()
+    Send_L = SendReceiveValueControl()
     tempo = SendReceiveValueControl()
     scene_select = SendReceiveValueControl()
     Mute = ToggleButtonControl(toggled_color='Mixer.ArmOn', untoggled_color='Mixer.ArmOff')
@@ -116,7 +126,7 @@ class MixerComponent(MixerComponentBase):
         if song_length > 0:
             ratio = self.song.current_song_time / song_length
             bt = self.song.get_current_beats_song_time()
-            self._try_send_fn_display(54, f"{bt.bars}.{bt.beats}.{bt.sub_division}", ratio * 127)
+            self._try_send_fn_display(46, f"{bt.bars}.{bt.beats}.{bt.sub_division}", ratio * 127)
 
     @listens('selected_parameter')
     def on_selected_parameter_changed(self):
@@ -124,10 +134,10 @@ class MixerComponent(MixerComponentBase):
         if liveobj_valid(selected_param):
             r = selected_param.max - selected_param.min
             cc_val = (selected_param.value - selected_param.min) / r * 127 if r > 0 else 0
-            self._try_send_fn_display(55, selected_param.str_for_value(selected_param.value), cc_val)
+            self._try_send_fn_display(47, selected_param.str_for_value(selected_param.value), cc_val)
             self.on_parameter_changed.subject = selected_param
         else:
-            self._try_send_fn_display(55, "No Param")
+            self._try_send_fn_display(47, "No Param")
 
     @listens('value')
     def on_parameter_changed(self):
@@ -135,7 +145,7 @@ class MixerComponent(MixerComponentBase):
         if liveobj_valid(selected_param):
             r = selected_param.max - selected_param.min
             cc_val = (selected_param.value - selected_param.min) / r * 127 if r > 0 else 0
-            self._try_send_fn_display(55, selected_param.str_for_value(selected_param.value), cc_val)
+            self._try_send_fn_display(47, selected_param.str_for_value(selected_param.value), cc_val)
 
     @Selected_Parameter.value
     def on_Selected_Parameter_changed(self, value, button):
@@ -220,6 +230,7 @@ class MixerComponent(MixerComponentBase):
             self._on_track_mute_changed()
             self._on_track_solo_changed()
             self._on_track_arm_changed()
+            self._update_fn_sends()
 
     def _disconnect_track_listeners(self):
         """Déconnecte les listeners de l'ancienne piste"""
@@ -297,6 +308,44 @@ class MixerComponent(MixerComponentBase):
         value = self.process_relative_encoder(v.value, value, sensitivity=0.01, min_val=v.min, max_val=v.max)
         v.value = value
 
+    @Send_A.value
+    def on_Send_A_changed(self, v, _): self._handle_send(0, v)
+    @Send_B.value
+    def on_Send_B_changed(self, v, _): self._handle_send(1, v)
+    @Send_C.value
+    def on_Send_C_changed(self, v, _): self._handle_send(2, v)
+    @Send_D.value
+    def on_Send_D_changed(self, v, _): self._handle_send(3, v)
+    @Send_E.value
+    def on_Send_E_changed(self, v, _): self._handle_send(4, v)
+    @Send_F.value
+    def on_Send_F_changed(self, v, _): self._handle_send(5, v)
+    @Send_G.value
+    def on_Send_G_changed(self, v, _): self._handle_send(6, v)
+    @Send_H.value
+    def on_Send_H_changed(self, v, _): self._handle_send(7, v)
+    @Send_I.value
+    def on_Send_I_changed(self, v, _): self._handle_send(8, v)
+    @Send_J.value
+    def on_Send_J_changed(self, v, _): self._handle_send(9, v)
+    @Send_K.value
+    def on_Send_K_changed(self, v, _): self._handle_send(10, v)
+    @Send_L.value
+    def on_Send_L_changed(self, v, _): self._handle_send(11, v)
+
+    def _handle_send(self, idx, value):
+        t = self.song.view.selected_track
+        if not liveobj_valid(t) or not hasattr(t, 'mixer_device'):
+            return
+        sends = t.mixer_device.sends
+        if idx >= len(sends):
+            return
+        v = sends[idx]
+        v.value = self.process_relative_encoder(v.value, value, sensitivity=0.01, min_val=v.min, max_val=v.max)
+        r = v.max - v.min
+        norm_val = (v.value - v.min) / r * 127 if r > 0 else 0
+        self._try_send_fn_display(64 + idx, v.str_for_value(v.value), norm_val)
+
     @Track_Volume.value
     def on_Track_Volume_changed(self, value, button):
         if self._selected_track and hasattr(self._selected_track, 'mixer_device'):
@@ -326,26 +375,6 @@ class MixerComponent(MixerComponentBase):
         new_index = clamp(current_index + delta, 0, len(scenes) - 1)
         self.song.view.selected_scene = scenes[new_index]
     
-    @next_sends_button.pressed
-    def on_next_sends_button_pressed(self, button):
-        if self._selected_track and hasattr(self._selected_track, 'mixer_device'):
-            sends = self._selected_track.mixer_device.sends
-            current_send_index = next((i for i, send in enumerate(sends) if send.is_enabled), 0)
-            next_send_index = (current_send_index + 1) % len(sends)
-            for i, send in enumerate(sends):
-                send.is_enabled = (i == next_send_index)
-            print(f"Next Send: {sends[next_send_index].name if sends else 'None'}") 
-
-    @prev_sends_button.pressed
-    def on_prev_sends_button_pressed(self, button): 
-        if self._selected_track and hasattr(self._selected_track, 'mixer_device'):
-            sends = self._selected_track.mixer_device.sends
-            current_send_index = next((i for i, send in enumerate(sends) if send.is_enabled), 0)
-            prev_send_index = (current_send_index - 1) % len(sends)
-            for i, send in enumerate(sends):
-                send.is_enabled = (i == prev_send_index)
-            print(f"Previous Send: {sends[prev_send_index].name if sends else 'None'}")
-
     @Mute.toggled
     def on_Mute_toggled(self, is_toggled, button):
         if self._selected_track:
@@ -393,18 +422,18 @@ class MixerComponent(MixerComponentBase):
     def on_track_volume_changed(self):
         if self._selected_track and hasattr(self._selected_track, 'mixer_device'):
             v = self._selected_track.mixer_device.volume
-            self._try_send_fn_display(52, v.str_for_value(v.value), v.value * 127)
+            self._try_send_fn_display(44, v.str_for_value(v.value), v.value * 127)
 
     @listens(u'value')
     def on_track_pan_changed(self):
         if self._selected_track and hasattr(self._selected_track, 'mixer_device'):
             p = self._selected_track.mixer_device.panning
-            self._try_send_fn_display(53, p.str_for_value(p.value), (p.value + 1.0) * 63.5)
+            self._try_send_fn_display(45, p.str_for_value(p.value), (p.value + 1.0) * 63.5)
 
     @listens(u'tempo')
     def on_tempo_changed(self):
         t = self.song.tempo
-        self._try_send_fn_display(50, f"{t:.2f} BPM", (t - 20.0) / (300.0 - 20.0) * 127)
+        self._try_send_fn_display(42, f"{t:.2f} BPM", (t - 20.0) / (300.0 - 20.0) * 127)
 
     @listens(u'selected_scene')
     def _on_selected_scene_changed(self):
@@ -413,17 +442,17 @@ class MixerComponent(MixerComponentBase):
             scenes = list(self.song.scenes)
             idx = scenes.index(scene)
             name = scene.name if scene.name else f"Scene {idx + 1}"
-            self._try_send_fn_display(51, name, idx / max(len(scenes) - 1, 1) * 127)
+            self._try_send_fn_display(43, name, idx / max(len(scenes) - 1, 1) * 127)
 
     @listens(u'value')
     def on_cue_volume_changed(self):
         v = self.song.master_track.mixer_device.cue_volume
-        self._try_send_fn_display(49, v.str_for_value(v.value), v.value * 127)
+        self._try_send_fn_display(41, v.str_for_value(v.value), v.value * 127)
 
     @listens(u'value')
     def on_master_volume_changed(self):
         v = self.song.master_track.mixer_device.volume
-        self._try_send_fn_display(48, v.str_for_value(v.value), v.value * 127)
+        self._try_send_fn_display(40, v.str_for_value(v.value), v.value * 127)
 
     def send_display(self, param_type, param_index, value):
         if self._parent:
@@ -438,8 +467,7 @@ class MixerComponent(MixerComponentBase):
         if fader_idx is not None:
             self.send_display(PARAM_VALUE, fader_idx, v_str)
             if cc_val is not None and self._parent:
-                cc = fn_id - 8 if 48 <= fn_id <= 55 else fn_id
-                self._parent._send_midi((0xB0 | 7, cc & 0x7F, min(max(int(cc_val), 0), 127)))
+                self._parent._send_midi((0xB0 | 7, fn_id & 0x7F, min(max(int(cc_val), 0), 127)))
 
     def get_snapshotable_params(self):
         params = [None] * 8
