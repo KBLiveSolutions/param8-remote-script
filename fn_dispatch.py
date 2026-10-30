@@ -17,7 +17,7 @@ class FnDispatchMixin:
     _BUTTON_FN_IDS = {
         2, 3, 4, 5, 6, 7, 8,         # Stop, Undo, Redo, Tempo+1, Tempo-1, Capture, Re-enable
         11, 12, 13, 14, 15, 16, 17, 18,  # Arrangement
-        22, 23, 48, 49,               # Session (Scene +/- on 48/49, clear of encoder CCs 43-47)
+        22, 28, 48, 49,               # Session (Scene +/- on 48/49; 23=A/B falls through to device layer)
         # 20-27 (Navigation): fall through to mixer/device_navigation layers
         30, 31,                       # Preset -/+
         36, 37, 38, 39,               # Variations
@@ -142,7 +142,7 @@ class FnDispatchMixin:
             elif fn_id == 22:
                 song.session_record = not song.session_record
                 self._send_midi((0xB0 | 7, 22, 127 if song.session_record else 0))
-            elif fn_id == 23: song.stop_all_clips()
+            elif fn_id == 28: song.stop_all_clips()
             # fnIds 20-27 (Navigation): fall through to mixer/device_navigation layers
             elif fn_id == 30:
                 new_mode = max(self.active_mode - 1, 0)
