@@ -19,6 +19,7 @@ class FnDispatchMixin:
         11, 12, 13, 14, 15, 16, 17, 18,  # Arrangement
         22, 23, 48, 49,               # Session (Scene +/- on 48/49, clear of encoder CCs 43-47)
         # 20-27 (Navigation): fall through to mixer/device_navigation layers
+        30, 31,                       # Preset -/+
         36, 37, 38, 39,               # Variations
     }
 
@@ -111,8 +112,12 @@ class FnDispatchMixin:
             # Arrangement
             elif fn_id == 11: song.continue_playing()
             elif fn_id == 12: song.current_song_time = 0.0
-            elif fn_id == 13: song.back_to_arranger = not song.back_to_arranger
-            elif fn_id == 14: song.record_mode = not song.record_mode
+            elif fn_id == 13:
+                song.back_to_arranger = not song.back_to_arranger
+                self._send_midi((0xB0 | 7, 13, 127 if song.back_to_arranger else 0))
+            elif fn_id == 14:
+                song.record_mode = not song.record_mode
+                self._send_midi((0xB0 | 7, 14, 127 if song.record_mode else 0))
             elif fn_id == 15:
                 t = song.current_song_time
                 cues = sorted(song.cue_points, key=lambda c: c.time)
@@ -134,8 +139,18 @@ class FnDispatchMixin:
                 scenes = list(song.scenes)
                 idx = scenes.index(song.view.selected_scene)
                 song.view.selected_scene = scenes[max(0, idx - 1)]
-            elif fn_id == 22: song.session_record = not song.session_record
+            elif fn_id == 22:
+                song.session_record = not song.session_record
+                self._send_midi((0xB0 | 7, 22, 127 if song.session_record else 0))
             elif fn_id == 23: song.stop_all_clips()
-            # fnIds 20-27 (Navigation): CC falls through to mixer/device_navigation layers
+            # fnIds 20-27 (Navigation): fall through to mixer/device_navigation layers
+            elif fn_id == 30:
+                new_mode = max(self.active_mode - 1, 0)
+                if new_mode != self.active_mode:
+                    self._send_midi((0xC0 | 7, new_mode))
+            elif fn_id == 31:
+                new_mode = min(self.active_mode + 1, 24)
+                if new_mode != self.active_mode:
+                    self._send_midi((0xC0 | 7, new_mode))
         except Exception as e:
             print(f"fn_btn dispatch fn_id={fn_id}: {e}")

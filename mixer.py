@@ -88,6 +88,8 @@ class MixerComponent(MixerComponentBase):
         self._on_song_position_changed.subject = self.song
         self._on_playing_state_changed.subject = self.song
         self._on_record_mode_changed.subject = self.song
+        self._on_back_to_arranger_changed.subject = self.song
+        self._on_session_record_changed.subject = self.song
         self._on_loop_changed.subject = self.song
         self._on_metronome_changed.subject = self.song
         
@@ -99,7 +101,15 @@ class MixerComponent(MixerComponentBase):
 
     @listens('record_mode')
     def _on_record_mode_changed(self):
-        self.Record.is_toggled = self.song.record_mode
+        self._send_button_led(14, self.song.record_mode)
+
+    @listens('back_to_arranger')
+    def _on_back_to_arranger_changed(self):
+        self._send_button_led(13, self.song.back_to_arranger)
+
+    @listens('session_record')
+    def _on_session_record_changed(self):
+        self._send_button_led(22, self.song.session_record)
 
     @listens('loop')
     def _on_loop_changed(self):
@@ -459,6 +469,10 @@ class MixerComponent(MixerComponentBase):
             self._parent.send_display(param_type, param_index, value)
             print(f"Display sent: {param_type}, {param_index}, {value}")
 
+    def _send_button_led(self, fn_id, state):
+        if self._parent:
+            self._parent._send_midi((0xB0 | 7, fn_id & 0x7F, 127 if state else 0))
+
     def _try_send_fn_display(self, fn_id, v_str, cc_val=None):
         fn_map = getattr(self._parent, '_fn_fader_map', None) if self._parent else None
         if fn_map is None:
@@ -509,6 +523,8 @@ class MixerComponent(MixerComponentBase):
         self.on_track_pan_changed()
         self._on_playing_state_changed()
         self._on_record_mode_changed()
+        self._on_back_to_arranger_changed()
+        self._on_session_record_changed()
         self._on_loop_changed()
         self._on_metronome_changed()
         self._on_selected_track_changed()
