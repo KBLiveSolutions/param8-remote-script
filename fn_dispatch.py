@@ -7,22 +7,15 @@ def print(text):
 
 
 class FnDispatchMixin:
-    # fnId == CC everywhere. MixerComponent encoders (40-47) and layer buttons (50-57) fall through.
+    # fnId == CC everywhere. Encoder fn IDs are intercepted in process_midi_bytes.
+    # Button fn IDs are handled by registered ButtonElements in param8._fn_button_elements (CC22 excepted).
     _ENCODER_FN_IDS = {
         44, 45,                       # Track Vol, Track Pan (selected track — not MixerComponent)
-        56, 57,                       # Groove, Track Sel
+        63,                           # Groove
+        76,                           # Track Sel
         58, 59, 60, 61, 62,           # Select Preset, Loop Pos, Loop Len, H.Zoom, Jump Mkr
         *range(80, 112),              # Device Params 1-32
     }
-    _BUTTON_FN_IDS = {
-        2, 3, 4, 5, 6, 7, 8,         # Stop, Undo, Redo, Tempo+1, Tempo-1, Capture, Re-enable
-        11, 12, 13, 14, 15, 16, 17, 18,  # Arrangement
-        22, 28, 48, 49,               # Session (Scene +/- on 48/49; 23=A/B falls through to device layer)
-        # 20-27 (Navigation): fall through to mixer/device_navigation layers
-        30, 31,                       # Preset -/+
-        36, 37, 38, 39,               # Variations
-    }
-
     def _dispatch_fn_encoder(self, fn_id, val):
         try:
             m = self._mixer
@@ -47,11 +40,11 @@ class FnDispatchMixin:
                     v_str = p.str_for_value(p.value)
                     r = p.max - p.min
                     norm_val = (p.value - p.min) / r * 127 if r > 0 else 0
-            elif fn_id == 56:  # Groove (0–130%)
-                song.groove_amount = rel(song.groove_amount, val, sensitivity=0.005, min_val=0.0, max_val=1.3)
-                v_str = f"{song.groove_amount * 100:.1f}%"
-                norm_val = song.groove_amount / 1.3 * 127
-            elif fn_id == 57:  # Track Select
+            # elif fn_id == 63:  # Groove (0–130%)
+            #     song.groove_amount = rel(song.groove_amount, val, sensitivity=0.005, min_val=0.0, max_val=1.3)
+            #     v_str = f"{song.groove_amount * 100:.1f}%"
+            #     norm_val = song.groove_amount / 1.3 * 127
+            elif fn_id == 76:  # Track Select
                 tracks = list(song.visible_tracks) + list(song.return_tracks) + [song.master_track]
                 idx = next((i for i, t in enumerate(tracks) if t == song.view.selected_track), 0)
                 delta = 1 if val <= 64 else -1
@@ -98,6 +91,8 @@ class FnDispatchMixin:
 
     def _dispatch_fn_button(self, fn_id, val):
         if val <= 63:
+            if fn_id in (17, 18):
+                self._skip_held = False
             return
         try:
             song = self.song
@@ -106,7 +101,7 @@ class FnDispatchMixin:
             elif fn_id == 3:  song.undo()
             elif fn_id == 4:  song.redo()
             elif fn_id == 5:  song.tempo = min(song.tempo + 1.0, 999.0)
-            elif fn_id == 6:  song.tempo = max(song.tempo - 1.0, 60.0)
+            elif fn_id == 6:  song.tempo = max(song.tempo - 1.0, 20.0)
             elif fn_id == 7:  song.capture_midi()
             elif fn_id == 8:  song.re_enable_automation()
             # Arrangement
@@ -128,8 +123,10 @@ class FnDispatchMixin:
                 cues = sorted(song.cue_points, key=lambda c: c.time)
                 nxt = next((c for c in cues if c.time > t + 0.01), None)
                 if nxt: song.current_song_time = nxt.time
-            elif fn_id == 17: song.current_song_time = song.current_song_time + 4.0
-            elif fn_id == 18: song.current_song_time = max(0.0, song.current_song_time - 4.0)
+            elif fn_id in (17, 18):
+                self._skip_held = True
+                self._do_skip(fn_id)
+                self.schedule_message(4, lambda: self._repeat_skip(fn_id))
             # Session
             elif fn_id == 48:
                 scenes = list(song.scenes)
@@ -143,14 +140,17 @@ class FnDispatchMixin:
                 song.session_record = not song.session_record
                 self._send_midi((0xB0 | 7, 22, 127 if song.session_record else 0))
             elif fn_id == 28: song.stop_all_clips()
-            # fnIds 20-27 (Navigation): fall through to mixer/device_navigation layers
-            elif fn_id == 30:
-                new_mode = max(self.active_mode - 1, 0)
-                if new_mode != self.active_mode:
-                    self._send_midi((0xC0 | 7, new_mode))
-            elif fn_id == 31:
-                new_mode = min(self.active_mode + 1, 24)
-                if new_mode != self.active_mode:
-                    self._send_midi((0xC0 | 7, new_mode))
         except Exception as e:
             print(f"fn_btn dispatch fn_id={fn_id}: {e}")
+
+    def _do_skip(self, fn_id):
+        song = self.song
+        if fn_id == 17:
+            song.current_song_time = song.current_song_time + 4.0
+        else:
+            song.current_song_time = max(0.0, song.current_song_time - 4.0)
+
+    def _repeat_skip(self, fn_id):
+        if getattr(self, '_skip_held', False):
+            self._do_skip(fn_id)
+            self.schedule_message(2, lambda: self._repeat_skip(fn_id))

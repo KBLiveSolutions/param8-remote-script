@@ -76,6 +76,7 @@ slider_actions = {
     "Track Pan": 45,
     "Song Position": 46,
     "Selected Parameter": 47,
+    "Groove": 63,
     **{f"Send_{chr(65+i)}": 64 + i for i in range(12)},
   }
 display_actions =  {}
@@ -254,6 +255,23 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
             rows=[[self.encoders[f"Send_{chr(65+i)}"] for i in range(12)]]
         )
         self._shift_active = False
+        self._create_fn_button_elements()
+
+    # CC22 excluded: mode-dependent (Session Record in user/global, DeviceOn in device mode)
+    _FN_BUTTON_CCS = frozenset({
+        2, 3, 4, 5, 6, 7, 8,
+        11, 12, 13, 14, 15, 16, 17, 18,
+        28,
+        36, 37, 38, 39,
+        48, 49,
+    })
+
+    def _create_fn_button_elements(self):
+        self._fn_button_elements = {}
+        for cc in self._FN_BUTTON_CCS:
+            btn = self.make_button(cc, MIDI_CHANNEL, name=f'fn_btn_{cc}')
+            btn.add_value_listener(partial(self._dispatch_fn_button, cc))
+            self._fn_button_elements[cc] = btn
 
     def make_button(self, identifier, channel, name, msg_type = MIDI_CC_TYPE, skin = None, is_modifier = False):
         return ButtonElement(True, msg_type, channel, identifier, skin=self._skin, name=name, resource_type=PrioritizedResource if is_modifier else None)
@@ -302,6 +320,7 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
             Launch_Scene=self.buttons["Launch_Scene"],
             Default=self.buttons["Default"],
             Metronome=self.buttons["Metronome"],
+            Groove=self.encoders["Groove"],
             **{f"Send_{chr(65+i)}": self.encoders[f"Send_{chr(65+i)}"] for i in range(12)},
         )
         self._mixer.set_parent(self)
@@ -412,8 +431,6 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
         if len(midi_bytes) >= 3:
             status = midi_bytes[0] & 0xF0
             channel = midi_bytes[0] & 0x0F
-            if status == 0xB0:
-                print(f"DEBUG CC{midi_bytes[1]} ch{channel} val{midi_bytes[2]} mode={self.active_mode} in_fn={midi_bytes[1] in self._ENCODER_FN_IDS}")
             if status == 0xB0 and channel == MIDI_CHANNEL:
                 cc = midi_bytes[1]
                 val = midi_bytes[2]
@@ -426,11 +443,11 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
                             enc.mapping_sensitivity = sens
                     return
                 if self.active_mode < 25:
-                    if cc in self._ENCODER_FN_IDS:
+                    if self.active_mode < 24 and cc in self._ENCODER_FN_IDS:
                         self._dispatch_fn_encoder(cc, val)
                         return
-                    if cc in self._BUTTON_FN_IDS:
-                        self._dispatch_fn_button(cc, val)
+                    if cc == 22:  # Session Record in user/global mode; falls through to DeviceOn in device mode
+                        self._dispatch_fn_button(22, val)
                         return
         super(param8, self).process_midi_bytes(midi_bytes, midi_processor)
 

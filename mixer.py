@@ -17,6 +17,7 @@ MAX_NUM_SENDS = 4
 
 class MixerComponent(MixerComponentBase):
     Master_Volume = SendReceiveValueControl()
+    Groove = SendReceiveValueControl()
     Cue_Volume = SendReceiveValueControl()
     Track_Volume = SendReceiveValueControl()
     Track_Pan = SendReceiveValueControl()
@@ -92,6 +93,8 @@ class MixerComponent(MixerComponentBase):
         self._on_session_record_changed.subject = self.song
         self._on_loop_changed.subject = self.song
         self._on_metronome_changed.subject = self.song
+        self._on_can_capture_midi_changed.subject = self.song
+        self._on_re_enable_automation_enabled_changed.subject = self.song
         
         # self.update_component()
 
@@ -115,9 +118,23 @@ class MixerComponent(MixerComponentBase):
     def _on_loop_changed(self):
         self.Loop.is_toggled = self.song.loop
 
+    @listens('groove_amount')
+    def _on_groove_changed(self):
+        norm_val = self.song.groove_amount / 1.3 * 127
+        self._try_send_fn_display(63, f"{self.song.groove_amount * 100:.1f}%", norm_val)
+
     @listens('metronome')
     def _on_metronome_changed(self):
         self.Metronome.is_toggled = self.song.metronome
+
+    @listens('can_capture_midi')
+    def _on_can_capture_midi_changed(self):
+        self._send_button_led(7, self.song.can_capture_midi)
+
+    @listens('re_enable_automation_enabled')
+    def _on_re_enable_automation_enabled_changed(self):
+        self._send_button_led(8, self.song.re_enable_automation_enabled)
+
 
     @listens('current_song_time')
     def _on_song_position_changed(self):
@@ -157,6 +174,13 @@ class MixerComponent(MixerComponentBase):
             cc_val = (selected_param.value - selected_param.min) / r * 127 if r > 0 else 0
             self._try_send_fn_display(47, selected_param.str_for_value(selected_param.value), cc_val)
 
+    @Groove.value
+    def on_Groove_changed(self, value, button):
+        self.song.groove_amount = self.process_relative_encoder(
+            self.song.groove_amount, value, sensitivity=0.005, min_val=0.0, max_val=1.3)
+        norm_val = self.song.groove_amount / 1.3 * 127
+        self._try_send_fn_display(63, f"{self.song.groove_amount * 100:.1f}%", norm_val)
+        
     @Selected_Parameter.value
     def on_Selected_Parameter_changed(self, value, button):
         selected_param = self.song.view.selected_parameter
@@ -198,7 +222,7 @@ class MixerComponent(MixerComponentBase):
         selected_track = self.song.view.selected_track
         tracks = list(self.song.visible_tracks) + list(self.song.return_tracks) + [self.song.master_track]
         t_idx = next((i for i, t in enumerate(tracks) if t == selected_track), 0)
-        self._try_send_fn_display(57, selected_track.name, t_idx / max(len(tracks) - 1, 1) * 127)
+        self._try_send_fn_display(76, selected_track.name, t_idx / max(len(tracks) - 1, 1) * 127)
         self._update_selected_strip()
 
     def _update_selected_strip(self):
@@ -527,6 +551,8 @@ class MixerComponent(MixerComponentBase):
         self._on_session_record_changed()
         self._on_loop_changed()
         self._on_metronome_changed()
+        self._on_can_capture_midi_changed()
+        self._on_re_enable_automation_enabled_changed()
         self._on_selected_track_changed()
         self._update_fn_sends()
 
