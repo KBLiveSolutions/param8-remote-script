@@ -477,9 +477,43 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
             print(f"_get_fn_param({fn_id}) error: {e}")
         return None
 
+    def _get_fn_current_display(self, fn_id):
+        try:
+            song = self.song
+            track = song.view.selected_track
+            if fn_id == 63:
+                v = song.groove_amount
+                return f"{v * 100:.1f}%", v / 1.3 * 127
+            if fn_id == 76:
+                tracks = list(song.visible_tracks) + list(song.return_tracks) + [song.master_track]
+                idx = next((i for i, t in enumerate(tracks) if t == track), 0)
+                name = track.name if liveobj_valid(track) else "---"
+                return name, idx / max(len(tracks) - 1, 1) * 127
+            if fn_id == 59:
+                return f"{song.loop_start:.2f}", None
+            if fn_id == 60:
+                return f"{song.loop_length:.2f}", None
+            if fn_id == 62:
+                cues = sorted(song.cue_points, key=lambda c: c.time)
+                if cues:
+                    t = song.current_song_time
+                    nearest = min(cues, key=lambda c: abs(c.time - t))
+                    return nearest.name if nearest.name else f"{nearest.time:.2f}", None
+        except Exception as e:
+            print(f"_get_fn_current_display({fn_id}): {e}")
+        return None, None
+
     def _activate_fn_listener(self, preset, fader_idx, fn_id):
         param = self._get_fn_param(fn_id)
         if param is None:
+            v_str, norm_val = self._get_fn_current_display(fn_id)
+            if v_str is not None:
+                try:
+                    self.send_display(1, fader_idx, v_str)
+                    if norm_val is not None:
+                        self._send_midi((0xB0 | 7, fn_id & 0x7F, min(max(int(norm_val), 0), 127)))
+                except Exception as e:
+                    print(f"_activate_fn_listener (no-param) error: {e}")
             return
         try:
             self.send_display(1, fader_idx, param.str_for_value(param.value))

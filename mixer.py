@@ -95,6 +95,7 @@ class MixerComponent(MixerComponentBase):
         self._on_metronome_changed.subject = self.song
         self._on_can_capture_midi_changed.subject = self.song
         self._on_re_enable_automation_enabled_changed.subject = self.song
+        self._on_groove_changed.subject = self.song
         
         # self.update_component()
 
@@ -121,7 +122,8 @@ class MixerComponent(MixerComponentBase):
     @listens('groove_amount')
     def _on_groove_changed(self):
         norm_val = self.song.groove_amount / 1.3 * 127
-        self._try_send_fn_display(63, f"{self.song.groove_amount * 100:.1f}%", norm_val)
+        self.Groove.value = norm_val
+        self._try_send_fn_display(63, f"{self.song.groove_amount * 100:.0f}%", norm_val)
 
     @listens('metronome')
     def _on_metronome_changed(self):
@@ -178,8 +180,8 @@ class MixerComponent(MixerComponentBase):
     def on_Groove_changed(self, value, button):
         self.song.groove_amount = self.process_relative_encoder(
             self.song.groove_amount, value, sensitivity=0.005, min_val=0.0, max_val=1.3)
-        norm_val = self.song.groove_amount / 1.3 * 127
-        self._try_send_fn_display(63, f"{self.song.groove_amount * 100:.1f}%", norm_val)
+        # norm_val = self.song.groove_amount / 1.3 * 127
+        # self._try_send_fn_display(63, f"{self.song.groove_amount * 100:.1f}%", norm_val)
         
     @Selected_Parameter.value
     def on_Selected_Parameter_changed(self, value, button):

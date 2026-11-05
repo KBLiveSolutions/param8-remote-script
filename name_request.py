@@ -16,7 +16,7 @@ class NameRequestMixin:
         if not liveobj_valid(selected_param):
             print(f"NameRequest: no parameter selected")
             return
-        name = selected_param.name[:11]
+        name = selected_param.name[:19]
         preset = self.active_mode
         if preset >= 24:
             print(f"NameRequest: ignored on preset {preset}")
@@ -133,7 +133,7 @@ class NameRequestMixin:
                 continue
             is_button = parts[1] == "b"
             idx = int(parts[2])
-            name = info["param"][:11]
+            name = info["param"][:19]
             message = [240, 111, 15, preset, idx, 1 if is_button else 0]
             for c in name:
                 message.append(ord(c) & 0x7F)

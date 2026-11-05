@@ -11,7 +11,7 @@ class FnDispatchMixin:
     # Button fn IDs are handled by registered ButtonElements in param8._fn_button_elements (CC22 excepted).
     _ENCODER_FN_IDS = {
         44, 45,                       # Track Vol, Track Pan (selected track — not MixerComponent)
-        63,                           # Groove
+        # 63,                           # Groove
         76,                           # Track Sel
         58, 59, 60, 61, 62,           # Select Preset, Loop Pos, Loop Len, H.Zoom, Jump Mkr
         *range(80, 112),              # Device Params 1-32
