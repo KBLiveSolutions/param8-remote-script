@@ -91,7 +91,7 @@ class FnDispatchMixin:
 
     def _dispatch_fn_button(self, fn_id, val):
         if val <= 63:
-            if fn_id in (17, 18):
+            if fn_id in (119, 18):
                 self._skip_held = False
             return
         try:
@@ -104,26 +104,26 @@ class FnDispatchMixin:
             elif fn_id == 6:  song.tempo = max(song.tempo - 1.0, 20.0)
             elif fn_id == 7:  song.capture_midi()
             elif fn_id == 8:  song.re_enable_automation()
-            # Arrangement
-            elif fn_id == 11: song.continue_playing()
-            elif fn_id == 12: song.current_song_time = 0.0
-            elif fn_id == 13:
+            # Arrangement (113-119: moved from 11-17 to avoid conflict with device mode encoder CCs 11-17)
+            elif fn_id == 113: song.continue_playing()
+            elif fn_id == 114: song.current_song_time = 0.0
+            elif fn_id == 115:
                 song.back_to_arranger = not song.back_to_arranger
-                self._send_midi((0xB0 | 7, 13, 127 if song.back_to_arranger else 0))
-            elif fn_id == 14:
+                self._send_midi((0xB0 | 7, 115, 127 if song.back_to_arranger else 0))
+            elif fn_id == 116:
                 song.record_mode = not song.record_mode
-                self._send_midi((0xB0 | 7, 14, 127 if song.record_mode else 0))
-            elif fn_id == 15:
+                self._send_midi((0xB0 | 7, 116, 127 if song.record_mode else 0))
+            elif fn_id == 117:
                 t = song.current_song_time
                 cues = sorted(song.cue_points, key=lambda c: c.time)
                 nxt = next((c for c in reversed(cues) if c.time < t - 0.01), None)
                 if nxt: song.current_song_time = nxt.time
-            elif fn_id == 16:
+            elif fn_id == 118:
                 t = song.current_song_time
                 cues = sorted(song.cue_points, key=lambda c: c.time)
                 nxt = next((c for c in cues if c.time > t + 0.01), None)
                 if nxt: song.current_song_time = nxt.time
-            elif fn_id in (17, 18):
+            elif fn_id in (119, 18):
                 self._skip_held = True
                 self._do_skip(fn_id)
                 self.schedule_message(4, lambda: self._repeat_skip(fn_id))
@@ -145,7 +145,7 @@ class FnDispatchMixin:
 
     def _do_skip(self, fn_id):
         song = self.song
-        if fn_id == 17:
+        if fn_id == 119:
             song.current_song_time = song.current_song_time + 4.0
         else:
             song.current_song_time = max(0.0, song.current_song_time - 4.0)

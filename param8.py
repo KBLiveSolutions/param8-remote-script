@@ -258,12 +258,14 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
         self._create_fn_button_elements()
 
     # CC22 excluded: mode-dependent (Session Record in user/global, DeviceOn in device mode)
+    # CC11-17 moved to 113-119: were conflicting with device mode encoder CCs (10-17)
     _FN_BUTTON_CCS = frozenset({
         2, 3, 4, 5, 6, 7, 8,
-        11, 12, 13, 14, 15, 16, 17, 18,
+        18,
         28,
         36, 37, 38, 39,
         48, 49,
+        113, 114, 115, 116, 117, 118, 119,
     })
 
     def _create_fn_button_elements(self):
