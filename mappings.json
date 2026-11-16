@@ -156,13 +156,13 @@
       {
         "name": "Main",
         "parameters": [
-          {"name": "Grid",     "quantized": 12},
-          {"name": "Interval", "quantized": 12},
-          {"name": "Offset",   "quantized": 16},
-          {"name": "Gate",     "quantized": 12},
-          {"name": "Pitch",    "quantized": 13},
+          "Grid",
+          "Interval",
+          "Offset",
+          "Gate",
+          "Pitch",
           "Pitch Decay",
-          {"name": "Variation","quantized": 11},
+          "Variation",
           "Chance"
         ]
       },
@@ -183,12 +183,12 @@
         "name": "Repeat Rate",
         "parameters": [
           "Repeat",
-          {"name": "Interval", "quantized": 12},
-          {"name": "Offset",   "quantized": 16},
-          {"name": "Gate",     "quantized": 12},
-          {"name": "Grid",     "quantized": 12},
+          "Interval",
+          "Offset",
+          "Gate",
+          "Grid",
           "Block Triplets",
-          {"name": "Variation","quantized": 11},
+          "Variation",
           "Variation Type"
         ]
       }

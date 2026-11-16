@@ -12,8 +12,7 @@ class FnDispatchMixin:
     _ENCODER_FN_IDS = {
         44, 45,                       # Track Vol, Track Pan (selected track — not MixerComponent)
         # 63,                           # Groove
-        76,                           # Track Sel
-        58, 59, 60, 61, 62,           # Select Preset, Loop Pos, Loop Len, H.Zoom, Jump Mkr
+        58,                           # Select Preset
         *range(80, 112),              # Device Params 1-32
     }
     def _dispatch_fn_encoder(self, fn_id, val):
@@ -44,32 +43,6 @@ class FnDispatchMixin:
             #     song.groove_amount = rel(song.groove_amount, val, sensitivity=0.005, min_val=0.0, max_val=1.3)
             #     v_str = f"{song.groove_amount * 100:.1f}%"
             #     norm_val = song.groove_amount / 1.3 * 127
-            elif fn_id == 76:  # Track Select
-                tracks = list(song.visible_tracks) + list(song.return_tracks) + [song.master_track]
-                idx = next((i for i, t in enumerate(tracks) if t == song.view.selected_track), 0)
-                delta = 1 if val <= 64 else -1
-                idx = clamp(idx + delta, 0, len(tracks) - 1)
-                song.view.selected_track = tracks[idx]
-                v_str = song.view.selected_track.name
-                norm_val = idx / max(len(tracks) - 1, 1) * 127
-            elif fn_id == 59:  # Loop Position
-                delta = 0.5 if val <= 64 else -0.5
-                song.loop_start = max(0.0, song.loop_start + delta)
-                v_str = f"{song.loop_start:.2f}"
-            elif fn_id == 60:  # Loop Length
-                delta = 0.5 if val <= 64 else -0.5
-                song.loop_length = max(0.125, song.loop_length + delta)
-                v_str = f"{song.loop_length:.2f}"
-            elif fn_id == 62:  # Jump Marker
-                t = song.current_song_time
-                cues = sorted(song.cue_points, key=lambda c: c.time)
-                if cues:
-                    if val <= 64:
-                        nxt = next((c for c in cues if c.time > t + 0.01), cues[0])
-                    else:
-                        nxt = next((c for c in reversed(cues) if c.time < t - 0.01), cues[-1])
-                    song.current_song_time = nxt.time
-                    v_str = nxt.name if nxt.name else f"{nxt.time:.2f}"
             elif 80 <= fn_id <= 111:  # Device Params 1-32
                 param_idx = fn_id - 80
                 device = song.view.selected_device
@@ -79,7 +52,7 @@ class FnDispatchMixin:
                     v_str = p.str_for_value(p.value)
                     r = p.max - p.min
                     norm_val = (p.value - p.min) / r * 127 if r > 0 else 0
-            # 58 (Select Preset), 61 (H.Zoom) not yet implemented
+            # 58 (Select Preset) not yet implemented
 
             fader_idx = self._fn_fader_map.get(fn_id)
             if fader_idx is not None and v_str is not None:
@@ -102,7 +75,9 @@ class FnDispatchMixin:
             elif fn_id == 4:  song.redo()
             elif fn_id == 5:  song.tempo = min(song.tempo + 1.0, 999.0)
             elif fn_id == 6:  song.tempo = max(song.tempo - 1.0, 20.0)
-            elif fn_id == 7:  song.capture_midi()
+            elif fn_id == 7:
+                song.session_record = not song.session_record
+                self._send_midi((0xB0 | 7, 7, 127 if song.session_record else 0))
             elif fn_id == 8:  song.re_enable_automation()
             # Arrangement (113-119: moved from 11-17 to avoid conflict with device mode encoder CCs 11-17)
             elif fn_id == 113: song.continue_playing()
@@ -136,9 +111,6 @@ class FnDispatchMixin:
                 scenes = list(song.scenes)
                 idx = scenes.index(song.view.selected_scene)
                 song.view.selected_scene = scenes[max(0, idx - 1)]
-            elif fn_id == 22:
-                song.session_record = not song.session_record
-                self._send_midi((0xB0 | 7, 22, 127 if song.session_record else 0))
             elif fn_id == 28: song.stop_all_clips()
         except Exception as e:
             print(f"fn_btn dispatch fn_id={fn_id}: {e}")

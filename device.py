@@ -238,6 +238,8 @@ class SimpleDeviceParameterComponent(Component):
         self._custom_bank_names = None
         self._custom_display_names = {}
         self._custom_quantized_counts = {}
+        self._custom_q_pos = {}
+        self._selector_pos = {}
         self._conditionals = {}
         self._selectors = {}
         self._selector_saved_index = {}
@@ -350,7 +352,9 @@ class SimpleDeviceParameterComponent(Component):
             sel = self._selectors[sel_key]
             n = len(sel["values"])
             delta = value if value < 64 else value - 128
-            new_idx = max(0, min(n - 1, sel["index"] + (1 if delta > 0 else -1)))
+            pos = max(0, min(127, self._selector_pos.get(sel_key, sel["index"] * 128 // max(1, n)) + delta))
+            self._selector_pos[sel_key] = pos
+            new_idx = pos * n // 128
             if new_idx != sel["index"]:
                 sel["index"] = new_idx
                 self._selector_saved_index[sel["name"]] = new_idx
@@ -379,11 +383,32 @@ class SimpleDeviceParameterComponent(Component):
                 if new_idx == sel["index"]:
                     self._parent.send_display(PARAM_VALUE, index, sel["values"][sel["index"]])
             return
+        param = self.parameters[index] if index < len(self.parameters) else None
+        num_q_custom = self._custom_quantized_counts.get(param.name, 0) if liveobj_valid(param) else 0
+        is_truly_q = getattr(param, 'is_quantized', False) if liveobj_valid(param) else False
+        if num_q_custom and not is_truly_q and liveobj_valid(param):
+            delta = value if value < 64 else value - 128
+            pos = max(0, min(127, self._custom_q_pos.get(index, 64) + delta))
+            self._custom_q_pos[index] = pos
+            new_idx = pos * num_q_custom // 128
+            r = param.max - param.min
+            new_val = param.min + new_idx * r / (num_q_custom - 1) if (r > 0 and num_q_custom > 1) else param.min
+            if abs(param.value - new_val) > 1e-9:
+                param.value = new_val
+            if self.device_control_enabled:
+                fader_val = new_idx * 127 // max(1, num_q_custom - 1)
+                try:
+                    ch = control.message_channel()
+                    cc = control.message_identifier()
+                    self._parent._send_midi((0xB0 | ch, cc, fader_val))
+                except Exception:
+                    pass
+                self._parent.send_display(PARAM_VALUE, index, str(param))
+            return
         self.sysex_smoother += 1
         if self.sysex_smoother > 2:
             self.sysex_smoother = 0
         if self.device_control_enabled:
-            param = self.parameters[index] if index < len(self.parameters) else None
             if liveobj_valid(param):
                 self._parent.send_display(PARAM_VALUE, index, str(param))
             else:
@@ -404,14 +429,17 @@ class SimpleDeviceParameterComponent(Component):
         if index >= len(controls):
             return
         control = controls[index]
-        try:
-            cc_val = int(round((parameter.value - parameter.min) / max(parameter.max - parameter.min, 0.001) * 127))
-            cc_val = max(0, min(127, cc_val))
-            ch = control.message_channel()
-            cc = control.message_identifier()
-            self._parent._send_midi((0xB0 | ch, cc, cc_val))
-        except Exception:
-            pass
+        num_q_custom = self._custom_quantized_counts.get(parameter.name, 0)
+        is_truly_q = getattr(parameter, 'is_quantized', False)
+        if not (num_q_custom and not is_truly_q):
+            try:
+                cc_val = int(round((parameter.value - parameter.min) / max(parameter.max - parameter.min, 0.001) * 127))
+                cc_val = max(0, min(127, cc_val))
+                ch = control.message_channel()
+                cc = control.message_identifier()
+                self._parent._send_midi((0xB0 | ch, cc, cc_val))
+            except Exception:
+                pass
         if self.device_control_enabled:
             self._parent.send_display(PARAM_VALUE, index, str(parameter))
 
@@ -477,8 +505,6 @@ class SimpleDeviceParameterComponent(Component):
         self._selector_saved_index = {}
         if liveobj_valid(self._device):
             print("param8: === %s ===" % self._device.class_name)
-            for p in self._device.parameters[1:]:
-                print("param8:   is_q=%-5s  %s" % (p.is_quantized, p.name))
             for p in self._device.parameters:
                 if p.name == 'Device On':
                     self._device_on_param = p
@@ -606,6 +632,8 @@ class SimpleDeviceParameterComponent(Component):
                     if sel_key in self._selectors:
                         sel = self._selectors[sel_key]
                         control.release_parameter()
+                        n = len(sel["values"])
+                        self._selector_pos[sel_key] = (2 * sel["index"] + 1) * 128 // (2 * max(1, n))
                         if self.device_control_enabled:
                             self._parent.send_display(PARAM_NAME, i, sel["name"])
                             val_str = sel["values"][sel["index"]]
@@ -625,7 +653,15 @@ class SimpleDeviceParameterComponent(Component):
                         name = self._custom_display_names.get(parameter.name) or parameter.name
                         if getattr(parameter, 'state', 0) != 0:
                             name = "~" + name
-                        control.connect_to(parameter)
+                        num_q_custom = self._custom_quantized_counts.get(parameter.name, 0)
+                        is_truly_q = getattr(parameter, 'is_quantized', False)
+                        if num_q_custom and not is_truly_q:
+                            control.release_parameter()
+                            r = parameter.max - parameter.min
+                            cur_idx = int(round((parameter.value - parameter.min) / r * (num_q_custom - 1))) if r > 0 else 0
+                            self._custom_q_pos[i] = (2 * cur_idx + 1) * 128 // (2 * max(1, num_q_custom))
+                        else:
+                            control.connect_to(parameter)
                         if self.device_control_enabled:
                             self._parent.send_display(PARAM_NAME, i, name)
                             try:
@@ -636,10 +672,20 @@ class SimpleDeviceParameterComponent(Component):
                                 items = list(parameter.value_items)
                                 num_q = min(len(items), 127) if len(items) >= 2 else 0
                             except (RuntimeError, AttributeError):
-                                num_q = self._custom_quantized_counts.get(parameter.name, 0)
+                                num_q = num_q_custom
                             if num_q:
                                 print("param8 q: [%s] = %d" % (parameter.name, num_q))
                             self._parent.send_display(PARAM_QUANTIZED, i, "", num_q)
+                            if num_q_custom and not is_truly_q:
+                                r = parameter.max - parameter.min
+                                cur_idx = int(round((parameter.value - parameter.min) / r * (num_q_custom - 1))) if r > 0 else 0
+                                fader_val = cur_idx * 127 // max(1, num_q_custom - 1)
+                                try:
+                                    ch = control.message_channel()
+                                    cc = control.message_identifier()
+                                    self._parent._send_midi((0xB0 | ch, cc, fader_val))
+                                except Exception:
+                                    pass
                     else:
                         control.release_parameter()
                         if self.device_control_enabled:
@@ -679,6 +725,8 @@ class SimpleDeviceParameterComponent(Component):
         self._custom_bank_names = None
         self._custom_display_names = {}
         self._custom_quantized_counts = {}
+        self._custom_q_pos = {}
+        self._selector_pos = {}
         self._conditionals = {}
         self._selectors = {}
         auto = _auto_banks(device)

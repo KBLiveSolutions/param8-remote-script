@@ -23,6 +23,7 @@ class MixerComponent(MixerComponentBase):
     Track_Pan = SendReceiveValueControl()
     Selected_Parameter = SendReceiveValueControl()
     Song_Position = SendReceiveValueControl()
+    Capture = ButtonControl()
     next_track_button = ButtonControl()
     prev_track_button = ButtonControl()
     Send_A = SendReceiveValueControl()
@@ -39,6 +40,11 @@ class MixerComponent(MixerComponentBase):
     Send_L = SendReceiveValueControl()
     tempo = SendReceiveValueControl()
     scene_select = SendReceiveValueControl()
+    track_select = SendReceiveValueControl()
+    loop_position = SendReceiveValueControl()
+    loop_length = SendReceiveValueControl()
+    cue_jump = SendReceiveValueControl()
+    horiz_zoom = SendReceiveValueControl()
     Mute = ToggleButtonControl(toggled_color='Mixer.ArmOn', untoggled_color='Mixer.ArmOff')
     Solo = ToggleButtonControl(toggled_color='Mixer.ArmOn', untoggled_color='Mixer.ArmOff')
     Record = ToggleButtonControl(toggled_color='Mixer.ArmOn', untoggled_color='Mixer.ArmOff')
@@ -99,6 +105,10 @@ class MixerComponent(MixerComponentBase):
         
         # self.update_component()
 
+    @listens('can_capture_midi')
+    def _on_can_capture_midi_changed(self):
+        self._send_button_led(29, self.song.can_capture_midi)
+
     @listens('is_playing')
     def _on_playing_state_changed(self):
         self.Play.is_toggled = self.song.is_playing
@@ -129,14 +139,9 @@ class MixerComponent(MixerComponentBase):
     def _on_metronome_changed(self):
         self.Metronome.is_toggled = self.song.metronome
 
-    @listens('can_capture_midi')
-    def _on_can_capture_midi_changed(self):
-        self._send_button_led(7, self.song.can_capture_midi)
-
     @listens('re_enable_automation_enabled')
     def _on_re_enable_automation_enabled_changed(self):
         self._send_button_led(8, self.song.re_enable_automation_enabled)
-
 
     @listens('current_song_time')
     def _on_song_position_changed(self):
@@ -163,10 +168,10 @@ class MixerComponent(MixerComponentBase):
         if liveobj_valid(selected_param):
             r = selected_param.max - selected_param.min
             cc_val = (selected_param.value - selected_param.min) / r * 127 if r > 0 else 0
-            self._try_send_fn_display(47, selected_param.str_for_value(selected_param.value), cc_val)
+            self._try_send_fn_display(47, selected_param.str_for_value(selected_param.value), cc_val, name=selected_param.name)
             self.on_parameter_changed.subject = selected_param
         else:
-            self._try_send_fn_display(47, "No Param")
+            self._try_send_fn_display(47, "---", name="Sel. Param.")
 
     @listens('value')
     def on_parameter_changed(self):
@@ -176,6 +181,14 @@ class MixerComponent(MixerComponentBase):
             cc_val = (selected_param.value - selected_param.min) / r * 127 if r > 0 else 0
             self._try_send_fn_display(47, selected_param.str_for_value(selected_param.value), cc_val)
 
+    @Capture.pressed
+    def on_Capture_pressed(self, button):
+        if self.song.can_capture_midi:
+            self.song.capture_midi()
+            print("Capture MIDI triggered")
+        else:
+            print("Capture MIDI not available")
+            
     @Groove.value
     def on_Groove_changed(self, value, button):
         self.song.groove_amount = self.process_relative_encoder(
@@ -257,8 +270,9 @@ class MixerComponent(MixerComponentBase):
             self.on_track_volume_changed.subject = self._selected_track.mixer_device.volume
             self.on_track_pan_changed.subject = self._selected_track.mixer_device.panning
             self.on_selected_device_changed.subject = self._selected_track.view
-            self._on_track_mute_changed.subject = self._selected_track
-            self._on_track_solo_changed.subject = self._selected_track
+            is_master = (self._selected_track == self.song.master_track)
+            self._on_track_mute_changed.subject = None if is_master else self._selected_track
+            self._on_track_solo_changed.subject = None if is_master else self._selected_track
             self._on_track_arm_changed.subject = self._selected_track if self._selected_track.can_be_armed else None
 
             self.on_track_volume_changed()
@@ -278,12 +292,12 @@ class MixerComponent(MixerComponentBase):
 
     @listens('mute')
     def _on_track_mute_changed(self):
-        if self._selected_track:
+        if self._selected_track and self._selected_track != self.song.master_track:
             self.Mute.is_toggled = self._selected_track.mute
 
     @listens('solo')
     def _on_track_solo_changed(self):
-        if self._selected_track:
+        if self._selected_track and self._selected_track != self.song.master_track:
             self.Solo.is_toggled = self._selected_track.solo
 
     @listens('arm')
@@ -410,6 +424,54 @@ class MixerComponent(MixerComponentBase):
             delta = -1
         new_index = clamp(current_index + delta, 0, len(scenes) - 1)
         self.song.view.selected_scene = scenes[new_index]
+
+    @cue_jump.value
+    def on_Cue_Jump_changed(self, value, button):
+        t = self.song.current_song_time
+        cues = sorted(self.song.cue_points, key=lambda c: c.time)
+        if not cues:
+            return
+        if value <= 64:
+            nxt = next((c for c in cues if c.time > t + 0.01), cues[0])
+        else:
+            nxt = next((c for c in reversed(cues) if c.time < t - 0.01), cues[-1])
+        self.song.current_song_time = nxt.time
+
+    @horiz_zoom.value
+    def on_Horiz_Zoom_changed(self, value, button):
+        try:
+            view = self.application.view
+            if value <= 64:
+                view.zoom_view(3, '', True)
+            else:
+                view.zoom_view(2, '', True)
+        except Exception as e:
+            print(f"horiz_zoom: {e}")
+
+    @loop_position.value
+    def on_Loop_Position_changed(self, value, button):
+        bar = float(self.song.signature_numerator)
+        delta = bar if value <= 64 else -bar
+        self.song.loop_start = max(0.0, self.song.loop_start + delta)
+
+    @loop_length.value
+    def on_Loop_Length_changed(self, value, button):
+        bar = float(self.song.signature_numerator)
+        delta = bar if value <= 64 else -bar
+        self.song.loop_length = max(bar, self.song.loop_length + delta)
+
+    @track_select.value
+    def on_Track_Select_changed(self, value, button):
+        tracks = list(self.song.visible_tracks) + list(self.song.return_tracks) + [self.song.master_track]
+        if not tracks:
+            return
+        current_index = next((i for i, t in enumerate(tracks) if t == self.song.view.selected_track), 0)
+        if value <= 64:
+            delta = 1
+        else:
+            delta = -1
+        new_index = clamp(current_index + delta, 0, len(tracks) - 1)
+        self.song.view.selected_track = tracks[new_index]
     
     @Mute.toggled
     def on_Mute_toggled(self, is_toggled, button):
@@ -499,12 +561,14 @@ class MixerComponent(MixerComponentBase):
         if self._parent:
             self._parent._send_midi((0xB0 | 7, fn_id & 0x7F, 127 if state else 0))
 
-    def _try_send_fn_display(self, fn_id, v_str, cc_val=None):
+    def _try_send_fn_display(self, fn_id, v_str, cc_val=None, name=None):
         fn_map = getattr(self._parent, '_fn_fader_map', None) if self._parent else None
         if fn_map is None:
             return
         fader_idx = fn_map.get(fn_id)
         if fader_idx is not None:
+            if name is not None:
+                self.send_display(PARAM_NAME, fader_idx, name)
             self.send_display(PARAM_VALUE, fader_idx, v_str)
             if cc_val is not None and self._parent:
                 self._parent._send_midi((0xB0 | 7, fn_id & 0x7F, min(max(int(cc_val), 0), 127)))

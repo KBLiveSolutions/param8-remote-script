@@ -55,7 +55,8 @@ button_actions = {
     "Loop": 56,
     "Default": 57,
     "A/B": 23,
-    "Hotswap": 22,
+    "DeviceOn": 22,
+    "Capture": 29,
   }
 led_actions = {
   }
@@ -70,6 +71,11 @@ slider_actions = {
     "Device_Encoder_8": 17,
     "Tempo": 42,
     "Scene_Select": 43,
+    "Track_Select": 76,
+    "Loop_Position": 59,
+    "Loop_Length": 60,
+    "Cue_Jump": 62,
+    "Horiz_Zoom": 61,
     "Cue_Volume": 41,
     "Master_Volume": 40,
     "Track Volume": 44,
@@ -125,7 +131,7 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
             b2 = (bpm_cents >> 14) & 0x7F
             b1 = (bpm_cents >> 7)  & 0x7F
             b0 =  bpm_cents        & 0x7F
-            self._send_midi((0xF0, 0x6F, 0x20, b2, b1, b0, 0xF7))
+            self._send_midi((0xF0, 0x6F, 0x23, b2, b1, b0, 0xF7))
         except Exception as e:
             print(f"_send_bpm error: {e}")
 
@@ -293,7 +299,7 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
                                     next_bank_button=self.buttons["BankUp"],
                                     prev_bank_button=self.buttons["BankDown"],
                                     Compare=self.buttons["A/B"],
-                                    DeviceOn=self.buttons["Hotswap"],
+                                    DeviceOn=self.buttons["DeviceOn"],
                     #   bank_select_buttons=self._elements.bank_select_buttons
                       )
 
@@ -314,6 +320,11 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
             prev_track_button=self.buttons["TrackDown"],
             tempo=self.encoders["Tempo"],
             scene_select=self.encoders["Scene_Select"],
+            track_select=self.encoders["Track_Select"],
+            loop_position=self.encoders["Loop_Position"],
+            loop_length=self.encoders["Loop_Length"],
+            cue_jump=self.encoders["Cue_Jump"],
+            horiz_zoom=self.encoders["Horiz_Zoom"],
             Mute=self.buttons["Mute"],
             Solo=self.buttons["Solo"],
             Record=self.buttons["Record"],
@@ -323,6 +334,7 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
             Default=self.buttons["Default"],
             Metronome=self.buttons["Metronome"],
             Groove=self.encoders["Groove"],
+            Capture=self.buttons["Capture"],
             **{f"Send_{chr(65+i)}": self.encoders[f"Send_{chr(65+i)}"] for i in range(12)},
         )
         self._mixer.set_parent(self)
@@ -360,13 +372,6 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
                 message.append(95)  # Remplace par `_`
         message.append(247)
         self.send_sysex(tuple(message))
-
-        # sequence_to_run = [
-        #  None] * (len(self._messages_to_send) * 2)
-        # sequence_to_run[None[None:2]] = [Task.run(partial(self._send_midi, msg)) for msg in self._messages_to_send]
-        # sequence_to_run[1[None:2]] = [Task.wait(INDIVIDUAL_MESSAGE_DELAY) for _ in self._messages_to_send]
-        # for subsequence in split_list(sequence_to_run, 40):
-        #     self._tasks.add((Task.sequence)(*subsequence))
 
     def port_settings_changed(self):
         super(param8, self).port_settings_changed()
@@ -415,6 +420,7 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
                     self._device_parameters.device_control_enabled = True
                     self._device_parameters._update_parameter_banks()
                     self._device_parameters.update()
+                    self._device_parameters._on_device_on_changed()
                     self._send_track_name()
                 else:  # presets 0-24
                     self._send_midi((0xF0, 0x6F, 0x07, self.active_mode, 0xF7))
@@ -445,10 +451,10 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
                             enc.mapping_sensitivity = sens
                     return
                 if self.active_mode < 25:
-                    if self.active_mode < 24 and cc in self._ENCODER_FN_IDS:
+                    if cc in self._ENCODER_FN_IDS:
                         self._dispatch_fn_encoder(cc, val)
                         return
-                    if cc == 22:  # Session Record in user/global mode; falls through to DeviceOn in device mode
+                    if cc == 22: 
                         self._dispatch_fn_button(22, val)
                         return
         super(param8, self).process_midi_bytes(midi_bytes, midi_processor)
