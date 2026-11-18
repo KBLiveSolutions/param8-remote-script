@@ -161,8 +161,7 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
 
     @listens('selected_track')
     def _on_selected_track_for_device(self):
-        if self.active_mode == 25:
-            self._send_track_name()
+        self._send_track_name()
 
     def _send_track_name(self):
         try:
@@ -429,6 +428,8 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
                     self._device_parameters.update()
                     if self.active_mode < 24:
                         self._send_preset_names(self.active_mode)
+                    self._send_track_name()
+                    self._device_parameters.send_context_labels()
                     self.schedule_message(10, self._mixer.update_component)
 
 

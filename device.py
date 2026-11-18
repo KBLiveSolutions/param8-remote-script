@@ -516,6 +516,7 @@ class SimpleDeviceParameterComponent(Component):
         print("param8 device: __on_provided_device_changed instance_id=%d device='%s' banks_before=%d" % (instance_id, device_name, len(self._banks)))
         self._bank_index = instance_id
         self.update()
+        self.send_context_labels()
 
     @listens("parameters")
     def __on_parameters_changed(self):
@@ -595,16 +596,26 @@ class SimpleDeviceParameterComponent(Component):
     def _do_send_device_bank_labels(self):
         if not self.device_control_enabled or not liveobj_valid(self._device):
             return
-        device_bank_names = self._custom_bank_names
-        if not device_bank_names:
-            device_bank_names = ["Bank %d" % (i + 1) for i in range(len(self._banks))]
-        bank_idx = clamp(self._bank_index, 0, len(device_bank_names) - 1)
-        bank_name = device_bank_names[bank_idx]
-        device_label = self._device.class_display_name
-        if self._device.name and self._device.name != device_label:
-            device_label = self._device.name
-        self._parent.send_display(DEVICE_NAME, 0, device_label)
-        self._parent.send_display(BANK_NAME, 0, bank_name)
+        self.send_context_labels()
+
+    def send_context_labels(self):
+        try:
+            if liveobj_valid(self._device):
+                device_bank_names = self._custom_bank_names
+                if not device_bank_names:
+                    device_bank_names = ["Bank %d" % (i + 1) for i in range(len(self._banks))]
+                bank_idx = clamp(self._bank_index, 0, len(device_bank_names) - 1)
+                bank_name = device_bank_names[bank_idx]
+                device_label = self._device.class_display_name
+                if self._device.name and self._device.name != device_label:
+                    device_label = self._device.name
+                self._parent.send_display(DEVICE_NAME, 0, device_label)
+                self._parent.send_display(BANK_NAME, 0, bank_name)
+            else:
+                self._parent.send_display(DEVICE_NAME, 0, "No Device")
+                self._parent.send_display(BANK_NAME, 0, "---")
+        except Exception as e:
+            print(f"send_context_labels: {e}")
 
     def _disconnect_parameters(self):
         for control in self._parameter_controls or []:
