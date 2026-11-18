@@ -124,6 +124,14 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
 
     def _delayed_handshake(self):
         self.send_sysex((240, 111, 5, 0, 247))
+        self.schedule_message(10, self._push_startup_labels)
+
+    def _push_startup_labels(self):
+        try:
+            self._send_track_name()
+            self._device_parameters.send_context_labels()
+        except Exception as e:
+            print(f"_push_startup_labels: {e}")
 
     def _send_bpm(self):
         try:
