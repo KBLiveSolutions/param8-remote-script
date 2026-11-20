@@ -429,6 +429,7 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
                     self._device_parameters.update()
                     self._device_parameters._on_device_on_changed()
                     self._send_track_name()
+                    self.schedule_message(1, self._force_device_on_state)
                 else:  # presets 0-24
                     self._send_midi((0xF0, 0x6F, 0x07, self.active_mode, 0xF7))
                     self._device_parameters.look_for_param8_device(self.active_mode)
@@ -438,7 +439,7 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
                         self._send_preset_names(self.active_mode)
                     self._send_track_name()
                     self._device_parameters.send_context_labels()
-                    self.schedule_message(10, self._mixer.update_component)
+                    self.schedule_message(1, self._mixer.update_component)
 
 
     def process_midi_bytes(self, midi_bytes, midi_processor):
@@ -543,6 +544,16 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
 
     def _add_slider(self, number):
         return EncoderElement(MIDI_CC_TYPE, MIDI_CHANNEL, number, Live.MidiMap.MapMode.relative_smooth_two_compliment)
+
+    def _force_device_on_state(self):
+        try:
+            param = self._device_parameters._device_on_param
+            if liveobj_valid(param):
+                self._send_midi((0xB0 | MIDI_CHANNEL, 22, 127 if param.value > 0.5 else 0))
+            else:
+                self._send_midi((0xB0 | MIDI_CHANNEL, 22, 0))
+        except Exception as e:
+            print(f"_force_device_on_state: {e}")
 
     def disconnect(self):
         try:

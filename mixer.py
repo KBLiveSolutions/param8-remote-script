@@ -621,6 +621,23 @@ class MixerComponent(MixerComponentBase):
         self._on_re_enable_automation_enabled_changed()
         self._on_selected_track_changed()
         self._update_fn_sends()
+        self.force_update_buttons()
+
+    def force_update_buttons(self):
+        """Force resend all toggle button states via raw MIDI, bypassing last_sent cache."""
+        try:
+            song = self.song
+            self._send_button_led(50, song.metronome)
+            self._send_button_led(52, song.is_playing)
+            self._send_button_led(56, song.loop)
+            t = self._selected_track
+            if liveobj_valid(t) and t != song.master_track:
+                self._send_button_led(54, t.mute)
+                self._send_button_led(55, t.solo)
+                if hasattr(t, 'can_be_armed') and t.can_be_armed:
+                    self._send_button_led(51, t.arm)
+        except Exception as e:
+            print(f"force_update_buttons: {e}")
 
     def _send_all_value_displays(self):
         print("=== _send_all_value_displays called ===")
