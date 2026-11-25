@@ -120,6 +120,8 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
         self._on_transport_changed.subject = self.song
         self._on_tempo_changed.subject = self.song
         self._on_selected_track_for_device.subject = self.song.view
+        self._device_lock_enabled = False
+        self._locked_device = None
         print("param8 OK")
 
     def _delayed_handshake(self):
@@ -130,6 +132,14 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
         try:
             self._send_track_name()
             self._device_parameters.send_context_labels()
+            self._send_midi((0xF0, 0x6F, 0x2A, 0, 0xF7))
+            # Default: independent mode (lock to current device, don't follow blue hand)
+            device = self._device_parameters._device
+            if not liveobj_valid(device):
+                device = self.song.view.selected_device
+            if liveobj_valid(device):
+                self._locked_device = device
+                self.lock_to_device(device)
         except Exception as e:
             print(f"_push_startup_labels: {e}")
 
@@ -246,11 +256,41 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
         return DeviceBankRegistry()
 
     def create_device_navigation(self):
-        self._device_navigation = SimpleDeviceNavigationComponent( name="Device_Navigation",
-            is_enabled=True)       
-        self._device_navigation.layer=Layer( next_button=self.buttons["DeviceUp"],
-                                    prev_button=self.buttons["DeviceDown"],
-                      )
+        self._device_navigation = SimpleDeviceNavigationComponent(
+            name="Device_Navigation",
+            is_enabled=True,
+            navigate_callback=self._navigate_device)
+        self._device_navigation.layer = Layer(
+            next_button=self.buttons["DeviceUp"],
+            prev_button=self.buttons["DeviceDown"])
+
+    def _navigate_device(self, direction):
+        try:
+            track = self.song.view.selected_track
+            devices = list(track.devices)
+            if not devices:
+                return
+            current = self._device_parameters._device
+            if liveobj_valid(current) and current in devices:
+                idx = devices.index(current)
+            else:
+                idx = 0
+            new_idx = max(0, min(len(devices) - 1, idx + direction))
+            new_device = devices[new_idx]
+            if not self._device_lock_enabled:
+                # Independent mode: lock to new device (blue hand stays)
+                if liveobj_valid(self._locked_device):
+                    try:
+                        self.unlock_from_device(self._locked_device)
+                    except Exception:
+                        pass
+                self._locked_device = new_device
+                self.lock_to_device(new_device)
+            else:
+                # Follow mode: move blue hand to new device, DeviceProvider follows
+                self.song.view.select_device(new_device)
+        except Exception as e:
+            print(f"_navigate_device: {e}")
 
     def _create_buttons(self):
         """ Create all the buttons one by one then buils the button matrixes if needed"""
@@ -296,11 +336,55 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
         encoder.mapping_sensitivity = 2.0  # Augmente cette valeur pour rendre l'encodeur plus "rapide"
         return encoder
 
+    def _toggle_device_lock(self):
+        try:
+            self._device_lock_enabled = not self._device_lock_enabled
+            device = self._device_parameters._device
+            if self._device_lock_enabled:
+                # Dev.Lock ON = follow mode: unlock so DeviceProvider follows blue hand
+                locked = self._locked_device or device
+                self._locked_device = None
+                if liveobj_valid(locked):
+                    self.unlock_from_device(locked)
+            else:
+                # Dev.Lock OFF = independent mode: lock to current device
+                self._locked_device = device
+                if liveobj_valid(device):
+                    self.lock_to_device(device)
+        except Exception as e:
+            print(f"_toggle_device_lock: {e}")
+        self._send_midi((0xF0, 0x6F, 0x2A, 1 if self._device_lock_enabled else 0, 0xF7))
+
+    def _set_device_lock(self, enabled):
+        if enabled == self._device_lock_enabled:
+            return
+        try:
+            self._device_lock_enabled = enabled
+            device = self._device_parameters._device
+            if self._device_lock_enabled:
+                locked = self._locked_device or device
+                self._locked_device = None
+                if liveobj_valid(locked):
+                    self.unlock_from_device(locked)
+            else:
+                self._locked_device = device
+                if liveobj_valid(device):
+                    self.lock_to_device(device)
+        except Exception as e:
+            print(f"_set_device_lock: {e}")
+
+    def _on_device_lock_changed(self, _):
+        try:
+            self._send_midi((0xF0, 0x6F, 0x2A, 1 if getattr(self, '_device_lock_enabled', False) else 0, 0xF7))
+        except Exception as e:
+            print(f"_on_device_lock_changed: {e}")
+
     def _create_device_parameters(self):
         self._device_parameters = SimpleDeviceParameterComponent(parent=self, name="Device_Parameters",
             is_enabled=True,
             use_parameter_banks=True,
             device_bank_registry = self._device_bank_registry,
+            toggle_lock=self._toggle_device_lock,
         )            
         self._device_parameters.layer=Layer(parameter_controls=self.device_parameter_buttons,
                                     next_bank_button=self.buttons["BankUp"],
@@ -407,6 +491,9 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
                 is_button = midi_bytes[5]
                 print(f"ClearNaming SysEx received: preset={preset} idx={idx} is_button={is_button}")
                 self._clear_param_mapping(preset, idx, is_button)
+                return
+            if midi_bytes[2] == 0x2A:
+                self._set_device_lock(midi_bytes[3] != 0)
                 return
             if midi_bytes[2] == 0x0C:  # encoder config response from getPresetControls
                 if len(midi_bytes) >= 14:

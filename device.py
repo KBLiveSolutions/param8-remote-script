@@ -747,8 +747,32 @@ class SimpleDeviceParameterComponent(Component):
             self._banks = [list(device.parameters[1:9])]
 
 
+    def navigate_to_device(self, device):
+        """Show a device without touching DeviceProvider (blue hand stays put)."""
+        for control in self._parameter_controls or []:
+            release_control(control)
+        self._device = device
+        self.__on_parameters_changed.subject = self._device
+        compare_subject = device if liveobj_valid(device) and hasattr(device, 'add_is_using_compare_preset_b_listener') else None
+        self._on_compare_changed.subject = compare_subject
+        self._device_on_param = None
+        self._selector_saved_index = {}
+        if liveobj_valid(device):
+            for p in device.parameters:
+                if p.name == 'Device On':
+                    self._device_on_param = p
+                    break
+        self._on_device_on_changed.subject = self._device_on_param
+        self._on_device_on_changed()
+        self._bank_index = 0
+        self.update()
+        self.send_context_labels()
+
     def _update_device_lock_button(self):
-        self.device_lock_button.is_toggled = self._device_provider.is_locked_to_device
+        is_locked = self._device_provider.is_locked_to_device
+        self.device_lock_button.is_toggled = is_locked
+        if hasattr(self._parent, '_on_device_lock_changed'):
+            self._parent._on_device_lock_changed(is_locked)
 
     def _send_param8_device_names(self, device):
         for i in range(16):

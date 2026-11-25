@@ -112,6 +112,7 @@ class FnDispatchMixin:
                 idx = scenes.index(song.view.selected_scene)
                 song.view.selected_scene = scenes[max(0, idx - 1)]
             elif fn_id == 28: song.stop_all_clips()
+            elif fn_id == 36: self._toggle_device_lock()
         except Exception as e:
             print(f"fn_btn dispatch fn_id={fn_id}: {e}")
 
