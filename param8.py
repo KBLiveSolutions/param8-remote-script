@@ -114,7 +114,7 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
             # self.set_device_component(self._device)
         self.active_mode = 1
         self._device_parameters.look_for_param8_device(self.active_mode)
-        self.send_sysex((240, 111, 5, 0, 247))
+        self.send_sysex((240, 111, 5, 0, 1, 1, 247))
         self.schedule_message(20, self._delayed_handshake)
         self._restore_param_mappings()
         self._on_transport_changed.subject = self.song
@@ -125,7 +125,7 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
         print("param8 OK")
 
     def _delayed_handshake(self):
-        self.send_sysex((240, 111, 5, 0, 247))
+        self.send_sysex((240, 111, 5, 0, 1, 1, 247))
         self.schedule_message(10, self._push_startup_labels)
 
     def _push_startup_labels(self):
