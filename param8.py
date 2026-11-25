@@ -433,7 +433,6 @@ class param8(ControlSurface, FnDispatchMixin, SnapshotMixin, NameRequestMixin):
                 else:  # presets 0-24
                     self._send_midi((0xF0, 0x6F, 0x07, self.active_mode, 0xF7))
                     self._device_parameters.look_for_param8_device(self.active_mode)
-                    self.request_rebuild_midi_map()
                     self._device_parameters.update()
                     if self.active_mode < 24:
                         self._send_preset_names(self.active_mode)
