@@ -21,7 +21,7 @@ from .snapshot import SnapshotMixin
 from .name_request import NameRequestMixin
 
 SCRIPT_NAME = 'param8'
-SCRIPT_VER = 'v1.0'
+SCRIPT_VER = 'v1.1'
 
 _instances = []
 
